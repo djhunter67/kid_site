@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %} {{ title }} {% endblock %}
+{% block head %}
+{% endblock %}
+
+{% block individual_page_contents %}
+<section id="card_container">
+  <div id="card_container__english">
+    <h1>English</h1>
+    <img src="https://via.placeholder.com/150" alt="English">
+    <button id="card_container__english__button">English</button>
+  </div>
+  <div id="card_container__science">
+    <h1>Science</h1>
+    <img src="https://via.placeholder.com/150" alt="Science">
+    <button id="card_container__science__button">Science</button>
+  </div>
+
+</section>
+
+{% call super() %} {% endblock %}

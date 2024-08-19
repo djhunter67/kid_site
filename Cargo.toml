@@ -1,0 +1,11 @@
+[package]
+name = "aj_studying"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-files = "0.6.6"
+actix-web = "4.9.0"
+askama = "0.12.1"
+log = "0.4.22"
+simplelog = "0.12.2"
