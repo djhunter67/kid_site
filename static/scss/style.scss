@@ -47,26 +47,19 @@ body {
 	    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 
 	    h1 {
-		font-size: 5rem;
+		font-size: 3rem;
 		font-weight: 600;
 		color: black;
-	    }
-
-
-	    img {
-		width: 200px;
-		height: 30%;
-		object-fit: cover;
-		border-radius: 10px;
-	    }
+		padding: 0;
+	    }	    
 
 	    button {
 		width: 100%;
 		padding: 10px;
 		border: none;
-		border-radius: 5px;
+		border-radius: 2.5rem;
 		background-color: coral;
-		color: white;
+		color: $card_background;
 		font-size: 1rem;
 		font-weight: 600;
 		cursor: pointer;
