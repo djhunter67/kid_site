@@ -1,16 +1,17 @@
-use std::{fs::File, io, process};
+mod endpoints;
+mod models;
 
-use actix_web::{get, http::KeepAlive, middleware, App, HttpResponse, HttpServer};
-use askama::Template;
+use actix_web::{http::KeepAlive, middleware, web::Data, App, HttpServer};
+use endpoints::routes::{create_user, index};
 use log::{debug, error, info, LevelFilter};
+use models::mongo::MongoRepo;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
+use std::{fs::File, io, process};
 
 /// The local IP address of the server.
 const HOST_IP: &str = "0.0.0.0"; // Local connection
 /// The port that the server will listen on.
 const PORT: u16 = 8099;
-// const API_RS: &str = "127.0.0.1:8090"; // Communication with the signal generator
-/// The name of the database that will be used.
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {
@@ -36,15 +37,20 @@ async fn main() -> io::Result<()> {
     }
     info!("Launched on PORT: {PORT}");
 
+    let db = MongoRepo::init().await;
+    let db_data = Data::new(db);
+
     HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
+            .app_data(db_data.clone())
             .service(
                 actix_files::Files::new("/static", "./static")
                     .show_files_listing()
                     .use_last_modified(true),
             )
             .service(index)
+            .service(create_user)
     })
     .keep_alive(KeepAlive::Os) // Keep the connection alive; OS handled
     .bind((HOST_IP, PORT))
@@ -57,25 +63,4 @@ async fn main() -> io::Result<()> {
     .workers(2)
     .run()
     .await
-}
-
-#[derive(Template)]
-#[template(path = "index.html")]
-struct Index<'a> {
-    title: &'a str,
-}
-
-#[get("/")]
-async fn index() -> HttpResponse {
-    let template = Index { title: "AJ Quiz" };
-
-    let body = match template.render() {
-        Ok(body) => body,
-        Err(err) => {
-            error!("Error rendering template: {err:#?}");
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
-
-    HttpResponse::Ok().body(body)
 }

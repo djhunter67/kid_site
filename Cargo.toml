@@ -7,5 +7,27 @@ edition = "2021"
 actix-files = "0.6.6"
 actix-web = "4.9.0"
 askama = "0.12.1"
+dotenv = "0.15.0"
 log = "0.4.22"
+mongodb = "3.0.1"
+serde = { version = "1.0.208", features = ["derive"] }
 simplelog = "0.12.2"
+
+[lints.clippy]
+pedantic = { level = "deny", priority = -1 }
+wildcard_imports = "deny"
+must_use_candidate = "warn"
+enum_glob_use = "deny"
+nursery = { level = "deny", priority = -1 }
+
+[profile.release]
+overflow-checks = false
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+incremental = false
+opt-level = "z"
+strip = "none"
+rpath = false
+debug-assertions = false
+
