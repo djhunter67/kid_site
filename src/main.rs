@@ -26,7 +26,13 @@ async fn main() -> io::Result<()> {
         WriteLogger::new(
             LevelFilter::Debug,
             Config::default(),
-            File::create("aj_quiz.log").unwrap(),
+            match File::create("aj_quiz.log") {
+                Ok(file) => file,
+                Err(err) => {
+                    error!("Error creating log file: {err:#?}");
+                    File::create("/tmp/aj_quiz.log").expect("Error creating backup log file")
+                }
+            },
         ),
     ]) {
         Ok(()) => debug!("Logger initialized"),

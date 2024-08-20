@@ -1,7 +1,8 @@
 use std::env;
 
+use log::error;
 use mongodb::{
-    bson::{self, doc, extjson::de::Error, oid::ObjectId},
+    bson::{doc, extjson::de::Error, oid::ObjectId},
     results::InsertOneResult,
     Client, Collection,
 };
@@ -24,10 +25,20 @@ pub struct MongoRepo {
 impl MongoRepo {
     pub async fn init() -> Self {
         dotenv::dotenv().ok();
-        let Ok(uri) = env::var("MONGOURI") else {
-            panic!("MONGOURI not found in .env")
+        let uri = match env::var("MONGOURI") {
+            Ok(url) => url,
+            Err(err) => {
+                error!("MONGOURI not found in .env: {err}");
+                std::process::exit(1);
+            }
         };
-        let client = Client::with_uri_str(&uri).await.unwrap();
+        let client = match Client::with_uri_str(&uri).await {
+            Ok(client) => client,
+            Err(err) => {
+                error!("Failed to connect to MongoDB: {err}\nExiting...");
+                std::process::exit(1);
+            }
+        };
         let db = client.database("study_pwa");
         let collection: Collection<User> = db.collection("users");
 
@@ -52,7 +63,10 @@ impl MongoRepo {
     }
 
     pub async fn get_user(&self, id: &str) -> Result<User, Error> {
-        let object_id = ObjectId::parse_str(id).unwrap();
+        let Ok(object_id) = ObjectId::parse_str(id) else {
+			return Err(Error::DeserializationError { message: "Failed to parse ObjectId".to_string() });
+		};
+
         let filter = doc! { "_id": object_id };
 
         let user = self
@@ -61,6 +75,6 @@ impl MongoRepo {
             .await
             .expect("Failed to find document in collection");
 
-        Ok(user.unwrap())
+        Ok(user.expect("Failed to find user"))
     }
 }

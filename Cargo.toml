@@ -19,6 +19,7 @@ wildcard_imports = "deny"
 must_use_candidate = "warn"
 enum_glob_use = "deny"
 nursery = { level = "deny", priority = -1 }
+unwrap_used = "deny"
 
 [profile.release]
 overflow-checks = false
