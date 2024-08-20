@@ -5,6 +5,8 @@ The leading technologies to help my 2nd grade daughter
 study her vocabulary words are costs that can be avoided. 
 
 ## Features
+- [ ] Design the web app for use by a 2nd grader
+- [ ] Implement the design using HTML and SCSS
 - [ ] Manually enter vocabulary words and definitions
 - [ ] Ingest data from the school's website
 - [ ] Display the data in a user-friendly way
