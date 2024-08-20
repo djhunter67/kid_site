@@ -4,10 +4,6 @@ ingests relevant data from my daughter's elementary school.
 The leading technologies to help my 2nd grade daughter 
 study her vocabulary words are costs that can be avoided. 
 
-## Synopsys
-image from the /static/imgs/ folder
-[index_page](/home/djhunter67/dev/aj_studying/static/imgs/index_page.jpg)
-
 ## Features
 - [ ] Manually enter vocabulary words and definitions
 - [ ] Ingest data from the school's website
