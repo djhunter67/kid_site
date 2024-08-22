@@ -2,7 +2,7 @@ mod endpoints;
 mod models;
 
 use actix_web::{http::KeepAlive, middleware, web::Data, App, HttpServer};
-use endpoints::routes::{create_user, index};
+use endpoints::routes::{create_user, delete_user, get_user, get_users, index, update_user};
 use log::{debug, error, info, LevelFilter};
 use models::mongo::MongoRepo;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
@@ -57,6 +57,10 @@ async fn main() -> io::Result<()> {
             )
             .service(index)
             .service(create_user)
+            .service(get_user)
+            .service(update_user)
+            .service(delete_user)
+            .service(get_users)
     })
     .keep_alive(KeepAlive::Os) // Keep the connection alive; OS handled
     .bind((HOST_IP, PORT))

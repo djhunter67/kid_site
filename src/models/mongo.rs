@@ -1,12 +1,11 @@
-use std::env;
-
-use log::error;
+use log::{error, info};
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId},
-    results::InsertOneResult,
+    results::{DeleteResult, InsertOneResult, UpdateResult},
     Client, Collection,
 };
 use serde::{Deserialize, Serialize};
+use std::env;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -64,8 +63,10 @@ impl MongoRepo {
 
     pub async fn get_user(&self, id: &str) -> Result<User, Error> {
         let Ok(object_id) = ObjectId::parse_str(id) else {
-			return Err(Error::DeserializationError { message: "Failed to parse ObjectId".to_string() });
-		};
+            return Err(Error::DeserializationError {
+                message: "Failed to parse ObjectId".to_string(),
+            });
+        };
 
         let filter = doc! { "_id": object_id };
 
@@ -76,5 +77,73 @@ impl MongoRepo {
             .expect("Failed to find document in collection");
 
         Ok(user.expect("Failed to find user"))
+    }
+
+    pub async fn update_user(&self, id: String, new_user: User) -> Result<UpdateResult, Error> {
+        let obj_id = match ObjectId::parse_str(id) {
+            Ok(id_data) => id_data,
+            Err(err) => {
+                error!("Failed to parse ObjectId: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to parse ObjectId".to_string(),
+                });
+            }
+        };
+
+        let filter = doc! { "_id": obj_id };
+        let new_doc = doc! {
+            "$set": {
+            "name": new_user.name,
+            "sign_up_date": new_user.sign_up_date,
+            "username": new_user.username,
+            }
+        };
+
+        let updated_doc = self
+            .collection
+            .update_one(filter, new_doc)
+            .await
+            .expect("Failed to update document in collection");
+
+        Ok(updated_doc)
+    }
+
+    pub async fn delete_user(&self, id: String) -> Result<DeleteResult, Error> {
+        let obj_id = match ObjectId::parse_str(id) {
+            Ok(id_data) => id_data,
+            Err(err) => {
+                error!("Failed to parse ObjectId: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to parse ObjectId".to_string(),
+                });
+            }
+        };
+
+        let filter = doc! { "_id": obj_id };
+
+        let deleted_doc = self
+            .collection
+            .delete_one(filter)
+            .await
+            .expect("Failed to delete user in collection");
+
+        Ok(deleted_doc)
+    }
+
+    pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
+        let mut users: Vec<User> = Vec::new();
+
+        let cursor = self
+            .collection
+            .find(doc! {})
+            .await
+            .expect("Failed to find documents in collection");
+        info!("created cursor");
+
+        while let Ok(result) = cursor.deserialize_current() {
+            users.push(result);
+        }
+
+        Ok(users)
     }
 }
