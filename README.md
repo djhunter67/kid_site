@@ -26,7 +26,7 @@ study her vocabulary words are costs that can be avoided. \
 - [ ] Export a report of user progress in PDF format
 - [ ] Free Free Free
 - [ ] Roll my own authentication
-- [ ] Document database wired up to the app
+- [X] Document database wired up to the app
 - [ ] Locally host to the world
 
 ## Architecture
