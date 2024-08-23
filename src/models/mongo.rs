@@ -5,7 +5,7 @@ use mongodb::{
     Client, Collection,
 };
 use serde::{Deserialize, Serialize};
-use std::env;
+use std::{borrow::Borrow, env};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -138,10 +138,18 @@ impl MongoRepo {
             .find(doc! {})
             .await
             .expect("Failed to find documents in collection");
-        info!("created cursor");
 
-        while let Ok(result) = cursor.deserialize_current() {
-            users.push(result);
+        let cursor_count = self
+            .collection
+            .count_documents(doc! {})
+            .await
+            .expect("Failed to count documents in collection");
+
+        for _ in 0..cursor_count {
+            let user = cursor
+                .deserialize_current()
+                .expect("Failed to extract user");
+            users.push(user);
         }
 
         Ok(users)

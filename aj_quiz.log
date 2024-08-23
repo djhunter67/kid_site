@@ -1,18 +1,5 @@
-01:10:01 [DEBUG] (1) aj_studying: Logger initialized
-01:10:01 [INFO] Launched on PORT: 8099
-01:10:01 [INFO] starting 2 workers
-01:10:01 [INFO] Actix runtime found; starting in Actix runtime
-01:10:01 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
-01:10:09 [INFO] 127.0.0.1 "DELETE /user/66c68c5e059c574405fe9849 HTTP/1.1" 200 25 "-" "PostmanRuntime/7.41.0" 0.004766
-01:10:40 [INFO] 127.0.0.1 "DELETE /user/66c68f6c1aa12e74827b3ffe HTTP/1.1" 200 25 "-" "PostmanRuntime/7.41.0" 0.002587
-01:10:43 [INFO] 127.0.0.1 "DELETE /user/66c68f6c1aa12e74827b3ffe HTTP/1.1" 404 14 "-" "PostmanRuntime/7.41.0" 0.001665
-01:11:06 [DEBUG] (2) actix_web::types::json: Failed to deserialize Json from payload. Request path: /user
-01:11:06 [DEBUG] (2) actix_web::middleware::logger: Error in response: Deserialize(Error("expected value", line: 2, column: 13))
-01:11:06 [INFO] 127.0.0.1 "POST /user HTTP/1.1" 400 58 "-" "PostmanRuntime/7.41.0" 0.000638
-01:11:41 [INFO] 127.0.0.1 "POST /user HTTP/1.1" 200 50 "-" "PostmanRuntime/7.41.0" 0.002235
-01:12:17 [INFO] 127.0.0.1 "PUT /user/66c68c5e059c574405fe9849 HTTP/1.1" 404 14 "-" "PostmanRuntime/7.41.0" 0.001777
-01:12:48 [INFO] 127.0.0.1 "POST /user HTTP/1.1" 200 50 "-" "PostmanRuntime/7.41.0" 0.001729
-01:13:09 [INFO] 127.0.0.1 "PUT /user/66c690903fa371d90b9df037 HTTP/1.1" 200 123 "-" "PostmanRuntime/7.41.0" 0.003017
-01:13:41 [INFO] 127.0.0.1 "PUT /user/66c6904d3fa371d90b9df036 HTTP/1.1" 200 123 "-" "PostmanRuntime/7.41.0" 0.002741
-01:13:56 [INFO] Getting all users
-01:13:56 [INFO] created cursor
+01:17:19 [DEBUG] (1) aj_studying: Logger initialized
+01:17:19 [INFO] Launched on PORT: 8099
+01:17:19 [INFO] starting 2 workers
+01:17:19 [INFO] Actix runtime found; starting in Actix runtime
+01:17:19 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
