@@ -8,9 +8,24 @@ use log::{error, info};
 use mongodb::bson::oid::ObjectId;
 
 use crate::{
-    endpoints::templates::Index,
+    endpoints::templates::{Index, LoginPage},
     models::mongo::{MongoRepo, User},
 };
+
+#[get("/login")]
+pub async fn login() -> HttpResponse {
+    let template = LoginPage { title: "Quiz site" };
+
+    let body = match template.render() {
+        Ok(body) => body,
+        Err(err) => {
+            error!("Error rendering template: {err:#?}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+
+    HttpResponse::Ok().content_type("text/html").body(body)
+}
 
 #[get("/")]
 pub async fn index() -> HttpResponse {

@@ -42,3 +42,11 @@ Attention to few on screen distractions will be paid.  There are currently no pl
 
 ## Design Ideology
 I am optimizing for future expansion and a simplistic interface given the intended user age group is seven years old.  Inherent in the design age group is the number of intended users is one but design will support multiple users.  Thus, simple expansion to different, more, or complex subjects will be attainable with minimal time and effort.  Auth will be SSO, initially.  This is a golden opportunity to roll a custom auth to know if that is something to be avoided in the future.
+
+## Technologies
+### Frontend
+- HTML
+- SCSS
+- HTMX
+
+The technologies used in the frontend are the __best tools for the job__.  To be clear, the __best tool for the job__ is compeletely subjective.  The __best tool for the job__ is the tool that is most familiar to the developer.  It is believed that familiarization with tools upon which most other tools are built is critical to a well-rounded developer.  Thus, the __best tools for the job__ are HTML, SCSS, and HTMX.  Experience with Bulma, Tailwind, and Bootstrap are strongly opinionated libraries and, admittedly, would work well in this scenario but there is more to learn abut CSS and every project is an opportunity to grow.

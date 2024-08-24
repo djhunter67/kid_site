@@ -2,7 +2,7 @@ mod endpoints;
 mod models;
 
 use actix_web::{http::KeepAlive, middleware, web::Data, App, HttpServer};
-use endpoints::routes::{create_user, delete_user, get_user, get_users, index, update_user};
+use endpoints::routes::{create_user, delete_user, get_user, get_users, index, login, update_user};
 use log::{debug, error, info, LevelFilter};
 use models::mongo::MongoRepo;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
@@ -55,9 +55,10 @@ async fn main() -> io::Result<()> {
                     .show_files_listing()
                     .use_last_modified(true),
             )
+            .service(login)
             .service(index)
             .service(create_user)
-	    // Database operations
+            // Database operations
             .service(get_user)
             .service(update_user)
             .service(delete_user)

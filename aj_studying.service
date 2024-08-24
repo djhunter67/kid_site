@@ -1,0 +1,13 @@
+[Unit]
+Description=aj_studying
+After=network.target
+
+[Service]
+Type=simple
+User=djhunter67
+WorkingDirectory=/home/djhunter67/app
+ExecStart=/home/djhunter67/app/aj_studying
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -1,8 +1,10 @@
-01:22:22 [DEBUG] (1) aj_studying: Logger initialized
-01:22:22 [INFO] Launched on PORT: 8099
-01:22:22 [INFO] starting 2 workers
-01:22:22 [INFO] Actix runtime found; starting in Actix runtime
-01:22:22 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
-01:22:25 [INFO] 127.0.0.1 "GET / HTTP/1.1" 200 1051 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000536
-01:22:25 [INFO] 127.0.0.1 "GET /static/css/style.css HTTP/1.1" 304 0 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000651
-01:22:25 [INFO] 127.0.0.1 "GET /static/assets/htmx/htmx.min.js HTTP/1.1" 304 0 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000994
+16:53:01 [DEBUG] (1) aj_studying: Logger initialized
+16:53:01 [INFO] Launched on PORT: 8099
+16:53:01 [INFO] starting 2 workers
+16:53:01 [INFO] Actix runtime found; starting in Actix runtime
+16:53:01 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
+16:53:07 [INFO] 127.0.0.1 "GET /login HTTP/1.1" 200 1098 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000213
+16:53:07 [INFO] 127.0.0.1 "GET /static/css/style.css HTTP/1.1" 200 1254 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000801
+16:53:07 [INFO] 127.0.0.1 "GET /static/assets/htmx/htmx.min.js HTTP/1.1" 200 48102 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000823
+16:53:07 [INFO] 127.0.0.1 "GET /static/imgs/education.svg HTTP/1.1" 200 2965 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000464
+16:53:07 [INFO] 127.0.0.1 "GET /static/css/style.css.map HTTP/1.1" 304 0 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000393
