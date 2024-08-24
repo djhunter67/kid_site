@@ -1,10 +1,9 @@
-16:53:01 [DEBUG] (1) aj_studying: Logger initialized
-16:53:01 [INFO] Launched on PORT: 8099
-16:53:01 [INFO] starting 2 workers
-16:53:01 [INFO] Actix runtime found; starting in Actix runtime
-16:53:01 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
-16:53:07 [INFO] 127.0.0.1 "GET /login HTTP/1.1" 200 1098 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000213
-16:53:07 [INFO] 127.0.0.1 "GET /static/css/style.css HTTP/1.1" 200 1254 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000801
-16:53:07 [INFO] 127.0.0.1 "GET /static/assets/htmx/htmx.min.js HTTP/1.1" 200 48102 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000823
-16:53:07 [INFO] 127.0.0.1 "GET /static/imgs/education.svg HTTP/1.1" 200 2965 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000464
-16:53:07 [INFO] 127.0.0.1 "GET /static/css/style.css.map HTTP/1.1" 304 0 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000393
+19:52:01 [DEBUG] (1) aj_studying: Logger initialized
+19:52:01 [INFO] Launched on PORT: 8099
+19:52:01 [INFO] starting 2 workers
+19:52:01 [INFO] Actix runtime found; starting in Actix runtime
+19:52:01 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
+19:52:02 [INFO] 127.0.0.1 "GET /login HTTP/1.1" 200 1554 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000212
+19:52:02 [INFO] 127.0.0.1 "GET /static/css/style.css HTTP/1.1" 304 0 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.001621
+19:52:02 [INFO] 127.0.0.1 "GET /static/imgs/meta_logo.jpg HTTP/1.1" 304 0 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.001090
+19:52:02 [INFO] 127.0.0.1 "GET /static/imgs/google_logo.webp HTTP/1.1" 304 0 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000692

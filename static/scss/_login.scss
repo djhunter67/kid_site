@@ -1,0 +1,50 @@
+$dark-black: hsl(206, 30%, 0%);
+
+#login {
+    width: 800px;
+    height: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: $dark-black;
+    border-radius: 2.75rem;
+
+    &__container {
+	width: 100%;
+	max-width: 400px;
+	padding: 20px;
+	background-color: #fff;
+	border-radius: 2.75rem;
+	box-shadow: 0 3rem 10rem rgba(0, 0, 0, 0.1);
+
+	h2 {
+	    margin-bottom: 20px;
+	    text-align: center;
+	}
+
+	form {
+	    display: flex;
+	    flex-direction: column;
+
+	    input {
+		margin-bottom: 10px;
+		padding: 10px;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+	    }
+
+	    button {
+		padding: 10px;
+		background-color: #f5f5b5;
+		border: 1px solid #ccc;
+		border-radius: 5px;
+		cursor: pointer;
+	    }
+	}
+	p {
+	    margin-top: 20px;
+	    text-align: center;
+	}
+    }
+}
+
