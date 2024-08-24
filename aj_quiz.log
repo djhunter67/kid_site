@@ -1,9 +1,6 @@
-19:52:01 [DEBUG] (1) aj_studying: Logger initialized
-19:52:01 [INFO] Launched on PORT: 8099
-19:52:01 [INFO] starting 2 workers
-19:52:01 [INFO] Actix runtime found; starting in Actix runtime
-19:52:01 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
-19:52:02 [INFO] 127.0.0.1 "GET /login HTTP/1.1" 200 1554 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000212
-19:52:02 [INFO] 127.0.0.1 "GET /static/css/style.css HTTP/1.1" 304 0 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.001621
-19:52:02 [INFO] 127.0.0.1 "GET /static/imgs/meta_logo.jpg HTTP/1.1" 304 0 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.001090
-19:52:02 [INFO] 127.0.0.1 "GET /static/imgs/google_logo.webp HTTP/1.1" 304 0 "http://localhost:8099/login" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000692
+20:37:07 [DEBUG] (1) aj_studying: Logger initialized
+20:37:07 [INFO] Launched on PORT: 8099
+20:37:07 [INFO] starting 2 workers
+20:37:07 [INFO] Actix runtime found; starting in Actix runtime
+20:37:07 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
+20:37:16 [INFO] 127.0.0.1 "GET /login HTTP/1.1" 200 1094 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000251
