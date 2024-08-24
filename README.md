@@ -40,5 +40,5 @@ There will be an aim to keep buttons, cards, and shapes uniform and aligned thro
 ### User Experience
 Attention to few on screen distractions will be paid.  There are currently no plans to gamify, thus there will be no effort to implement frills, poppers, etc... 
 
-
-
+## Design Ideology
+I am optimizing for future expansion and a simplistic interface given the intended user age group is seven years old.  Inherent in the design age group is the number of intended users is one but design will support multiple users.  Thus, simple expansion to different, more, or complex subjects will be attainable with minimal time and effort.  Auth will be SSO, initially.  This is a golden opportunity to roll a custom auth to know if that is something to be avoided in the future.

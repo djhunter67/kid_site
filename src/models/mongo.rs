@@ -1,11 +1,11 @@
-use log::{error, info};
+use log::error;
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId},
     results::{DeleteResult, InsertOneResult, UpdateResult},
     Client, Collection,
 };
 use serde::{Deserialize, Serialize};
-use std::{borrow::Borrow, env};
+use std::env;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {

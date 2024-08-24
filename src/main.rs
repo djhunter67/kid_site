@@ -57,6 +57,7 @@ async fn main() -> io::Result<()> {
             )
             .service(index)
             .service(create_user)
+	    // Database operations
             .service(get_user)
             .service(update_user)
             .service(delete_user)

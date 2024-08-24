@@ -1,5 +1,8 @@
-01:17:19 [DEBUG] (1) aj_studying: Logger initialized
-01:17:19 [INFO] Launched on PORT: 8099
-01:17:19 [INFO] starting 2 workers
-01:17:19 [INFO] Actix runtime found; starting in Actix runtime
-01:17:19 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
+01:22:22 [DEBUG] (1) aj_studying: Logger initialized
+01:22:22 [INFO] Launched on PORT: 8099
+01:22:22 [INFO] starting 2 workers
+01:22:22 [INFO] Actix runtime found; starting in Actix runtime
+01:22:22 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
+01:22:25 [INFO] 127.0.0.1 "GET / HTTP/1.1" 200 1051 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000536
+01:22:25 [INFO] 127.0.0.1 "GET /static/css/style.css HTTP/1.1" 304 0 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000651
+01:22:25 [INFO] 127.0.0.1 "GET /static/assets/htmx/htmx.min.js HTTP/1.1" 304 0 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000994
