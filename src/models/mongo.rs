@@ -14,6 +14,7 @@ pub struct User {
     pub name: String,
     pub sign_up_date: String,
     pub username: String,
+    pub password: String,
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -50,6 +51,7 @@ impl MongoRepo {
             name: new_user.name,
             sign_up_date: new_user.sign_up_date,
             username: new_user.username,
+	    password: new_user.password,
         };
 
         let user = self

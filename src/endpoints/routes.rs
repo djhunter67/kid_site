@@ -12,7 +12,7 @@ use crate::{
     models::mongo::{MongoRepo, User},
 };
 
-#[get("/login")]
+#[get("/")]
 pub async fn login() -> HttpResponse {
     let template = LoginPage { title: "Quiz site" };
 
@@ -27,7 +27,31 @@ pub async fn login() -> HttpResponse {
     HttpResponse::Ok().content_type("text/html").body(body)
 }
 
-#[get("/")]
+#[post("/login")]
+pub async fn submit_login(db: Data<MongoRepo>, user_id: String, password: String) -> HttpResponse {
+    // Authorization logic
+    let user: User = match db.get_user(&user_id).await {
+        Ok(user) => user,
+        Err(_) => return HttpResponse::Unauthorized().body("Invalid username or password"),
+    };
+
+    // Check if user exists
+    if !user.username.eq(&user_id) {
+        return HttpResponse::Unauthorized().body("Invalid username or password");
+    }
+
+    // Check if password is correct
+    if user.password != password {
+        return HttpResponse::Unauthorized().body("Invalid username or password");
+    }
+
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .append_header(("Authorization", "Bearer token"))
+        .body("Login submitted")
+}
+
+#[get("/main")]
 pub async fn index() -> HttpResponse {
     let template = Index { title: "AJ Quiz" };
 
@@ -39,7 +63,10 @@ pub async fn index() -> HttpResponse {
         }
     };
 
-    HttpResponse::Ok().body(body)
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .append_header(("Authorization", "Bearer token"))
+        .body(body)
 }
 
 #[post("/user")]
@@ -93,6 +120,7 @@ pub async fn update_user(
         name: new_user.name.clone(),
         username: new_user.username.clone(),
         sign_up_date: new_user.sign_up_date.clone(),
+	password: new_user.password.clone(),
     };
 
     let update_result = db.update_user(user_id.clone(), data).await;
