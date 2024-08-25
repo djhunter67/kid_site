@@ -1,7 +1,5 @@
-01:15:40 [DEBUG] (1) aj_studying: Logger initialized
-01:15:40 [INFO] Launched on PORT: 8099
-01:15:40 [INFO] starting 2 workers
-01:15:40 [INFO] Actix runtime found; starting in Actix runtime
-01:15:40 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
-01:24:48 [INFO] 127.0.0.1 "GET /register HTTP/1.1" 200 1186 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000598
-01:24:48 [INFO] 127.0.0.1 "GET /static/css/style.css HTTP/1.1" 304 0 "http://localhost:8099/register" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000739
+14:24:43 [DEBUG] (1) aj_studying: Logger initialized
+14:24:43 [INFO] Launched on PORT: 8099
+14:24:43 [INFO] starting 2 workers
+14:24:43 [INFO] Actix runtime found; starting in Actix runtime
+14:24:43 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099

@@ -1,19 +1,23 @@
 mod endpoints;
 mod models;
 
+use actix_files::NamedFile;
 use actix_web::{
+    get,
     http::KeepAlive,
     middleware::{self},
     web::Data,
-    App, HttpServer,
+    App, HttpResponse, HttpServer, Responder,
 };
 use endpoints::{
-    index::index, login::{ login, registration, submit_login}, users::{create_user, delete_user, get_user, get_users, update_user}
+    index::index,
+    login::{login, registration, submit_login},
+    users::{create_user, delete_user, get_user, get_users, update_user},
 };
 use log::{debug, error, info, LevelFilter};
 use models::mongo::MongoRepo;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
-use std::{fs::File, io, process};
+use std::{fs::File, io, path::PathBuf, process};
 
 /// The local IP address of the server.
 const HOST_IP: &str = "0.0.0.0"; // Local connection
@@ -57,11 +61,17 @@ async fn main() -> io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .app_data(db_data.clone())
-            .service(
-                actix_files::Files::new("/static", "./static")
-                    .show_files_listing()
-                    .use_last_modified(true),
-            )
+            // .service(
+            //     actix_files::Files::new("/static", ".")
+            //         .index_file("base.html")
+            //         .prefer_utf8(true)
+            //         .show_files_listing()
+            //         .use_last_modified(true),
+            // )
+            .service(favicon)
+            .service(stylesheet)
+            .service(source_map)
+            .service(htmx)
             .service(login)
             .service(index)
             .service(submit_login)
@@ -84,4 +94,36 @@ async fn main() -> io::Result<()> {
     .workers(2)
     .run()
     .await
+}
+
+#[get("/favicon")]
+async fn favicon() -> impl Responder {
+    let file = include_str!("../static/imgs/education.svg");
+    HttpResponse::Ok().content_type("icon").body(file)
+}
+
+#[get("/stylesheet")]
+async fn stylesheet() -> impl Responder {
+    let file = include_str!("../static/css/style.css");
+    HttpResponse::Ok().content_type("text/css").body(file)
+}
+
+#[get("/source_map")]
+async fn source_map() -> impl Responder {
+    let file = include_str!("../static/css/style.css.map");
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(file)
+}
+
+#[get("/htmx")]
+async fn htmx() -> Result<NamedFile, actix_web::Error> {
+    let path: PathBuf = ["static", "assets", "htmx", "htmx.min.js"].iter().collect();
+    match NamedFile::open(path) {
+        Ok(file) => Ok(file),
+        Err(err) => {
+            error!("Error opening file: {err:#?}");
+            Err(actix_web::error::ErrorInternalServerError(err))
+        }
+    }
 }
