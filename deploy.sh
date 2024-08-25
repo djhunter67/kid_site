@@ -17,7 +17,8 @@ fi
 # ssh -t $DESTINATION "mkdir -p ${DEST_PATH}" #2>&1 > /dev/null
 
 # Build the Rust application
-cargo build --release #--quiet #2>&1 > /dev/null
+echo -e "\e[33mBuilding the Rust application for Release\e[0m"
+cargo build --release --quiet # 2>&1 > /dev/null
 
 # Copy the binary to the server
 rsync -Pauvht --stats {.env,static,target/release/$APP_NAME} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
@@ -136,6 +137,7 @@ if [ $? -eq 0 ]; then
     echo -e "\e[32m\n\n############################################################\e[0m"
     echo -e "\e[32m################Service restarted successfully###################\e[0m"
     echo -e "\e[32m############################################################\e[0m"
+    exit 0
 else
     # Echo in red
     echo -e "\e[31m\n\n############################################################\e[0m"
