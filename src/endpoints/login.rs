@@ -34,10 +34,10 @@ pub async fn login() -> HttpResponse {
 
 #[post("/login")]
 pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) -> HttpResponse {
-    // warn!(
-    //     "User ID: {}, Password: {}",
-    //     credential.email, credential.password
-    // );
+    warn!(
+        "User ID: {}, Password: {}",
+        credential.email, credential.password
+    );
     // Authorization logic
     let user: User = match db.get_user(&credential.email).await {
         Ok(user) => user,
@@ -51,7 +51,7 @@ pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) ->
                 title: "Login Error",
                 code: 500,
                 message: "Invalid email or password",
-                error: &err.to_string(),
+                error: "login error",
             };
 
             let body = match template.render() {
@@ -130,12 +130,39 @@ pub async fn registration() -> HttpResponse {
 
 #[post("/register")]
 pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>) -> HttpResponse {
-    // warn!(
-    //     "User ID: {}, Password: {}, Password Confirm: {}",
-    //     credential.email, credential.password, credential.password_confirm
-    // );
+    if (credential.password.is_empty() || credential.password_confirm.is_empty())
+        || (credential.email.is_empty())
+        || (credential.password != credential.password_confirm)
+    {
+        let template = ErrorPage {
+            title: "Registration Error",
+            code: 500,
+            message: "Registration Error",
+            error: "Passwords do not match or email is empty",
+        };
 
-    // debug!("Password Match: {}", credential.password == credential.password_confirm);
+        let body = match template.render() {
+            Ok(body) => body,
+            Err(err) => {
+                error!("Error rendering template: {err:#?}");
+                return HttpResponse::InternalServerError().finish();
+            }
+        };
+
+        return HttpResponse::InternalServerError()
+            .content_type("text/html")
+            .body(body);
+    }
+
+    warn!(
+        "User ID: {}, Password: {}, Password Confirm: {}",
+        credential.email, credential.password, credential.password_confirm
+    );
+
+    debug!(
+        "Password Match: {}",
+        credential.password == credential.password_confirm
+    );
 
     if credential.password != credential.password_confirm {
         let template = ErrorPage {

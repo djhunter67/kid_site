@@ -2,7 +2,7 @@ $inner_background: hsl(0, 0%, 100%);
 $card_background: hsl(206, 30%, 40%);
 
 @import 'login';
-// @import 'errors';
+@import 'errors';
 @import 'main';
 
 body {
