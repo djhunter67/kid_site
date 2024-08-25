@@ -1,6 +1,6 @@
 use log::error;
 use mongodb::{
-    bson::{doc, extjson::de::Error, oid::ObjectId},
+    bson::{doc, extjson::de::Error, oid::ObjectId, DateTime},
     results::{DeleteResult, InsertOneResult, UpdateResult},
     Client, Collection,
 };
@@ -15,7 +15,7 @@ pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub name: String,
-    pub sign_up_date: String,
+    pub sign_up_date: DateTime,
     pub email: String,
     pub password: String,
 }
@@ -23,7 +23,7 @@ pub struct User {
 impl User {
     pub const fn new(
         name: String,
-        sign_up_date: String,
+        sign_up_date: DateTime,
         email: String,
         password: String,
     ) -> Self {

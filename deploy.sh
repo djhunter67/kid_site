@@ -14,10 +14,10 @@ if [ -z "$DESTINATION" ]; then
 fi
 
 # mkdir the target directory on the target machine
-ssh -t $DESTINATION "mkdir -p ${DEST_PATH}" 2>&1 > /dev/null
+# ssh -t $DESTINATION "mkdir -p ${DEST_PATH}" #2>&1 > /dev/null
 
 # Build the Rust application
-cargo build --release --quiet 2>&1 > /dev/null
+cargo build --release #--quiet #2>&1 > /dev/null
 
 # Copy the binary to the server
 rsync -Pauvht --stats {.env,static,target/release/$APP_NAME} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null

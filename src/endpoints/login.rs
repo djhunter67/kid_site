@@ -4,7 +4,7 @@ use actix_web::{
     HttpResponse,
 };
 use askama::Template;
-use log::{error, info, warn};
+use log::{debug, error, info, warn};
 use mongodb::bson::datetime;
 
 use crate::{
@@ -34,10 +34,10 @@ pub async fn login() -> HttpResponse {
 
 #[post("/login")]
 pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) -> HttpResponse {
-    warn!(
-        "User ID: {}, Password: {}",
-        credential.email, credential.password
-    );
+    // warn!(
+    //     "User ID: {}, Password: {}",
+    //     credential.email, credential.password
+    // );
     // Authorization logic
     let user: User = match db.get_user(&credential.email).await {
         Ok(user) => user,
@@ -130,6 +130,12 @@ pub async fn registration() -> HttpResponse {
 
 #[post("/register")]
 pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>) -> HttpResponse {
+    // warn!(
+    //     "User ID: {}, Password: {}, Password Confirm: {}",
+    //     credential.email, credential.password, credential.password_confirm
+    // );
+
+    // debug!("Password Match: {}", credential.password == credential.password_confirm);
 
     if credential.password != credential.password_confirm {
         let template = ErrorPage {
@@ -152,13 +158,12 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
             .body(body);
     }
 
-    let user = User {
-        id: None,
-        name: String::from("None"),
-        sign_up_date: datetime::DateTime::now().to_string(),
-        email: credential.email,
-        password: credential.password,
-    };
+    let user = User::new(
+        String::new(),
+        datetime::DateTime::now(),
+        credential.password.clone(),
+        credential.email.clone(),
+    );
 
     match db.create_user(user).await {
         Ok(_) => {

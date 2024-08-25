@@ -58,7 +58,7 @@ pub async fn update_user(
         id: Some(ObjectId::parse_str(&user_id).expect("Invalid ID")),
         name: new_user.name.clone(),
         email: new_user.email.clone(),
-        sign_up_date: new_user.sign_up_date.clone(),
+        sign_up_date: new_user.sign_up_date,
         password: String::from("************"),
     };
 

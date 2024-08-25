@@ -11,7 +11,7 @@ use actix_web::{
 };
 use endpoints::{
     index::index,
-    login::{login, registration, submit_login},
+    login::{login, register, registration, submit_login},
     users::{create_user, delete_user, get_user, get_users, update_user},
 };
 use log::{debug, error, info, LevelFilter};
@@ -76,6 +76,7 @@ async fn main() -> io::Result<()> {
             .service(index)
             .service(submit_login)
             .service(registration)
+            .service(register)
             // Database operations
             .service(create_user)
             .service(get_user)
