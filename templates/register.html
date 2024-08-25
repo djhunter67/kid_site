@@ -6,17 +6,18 @@
 {% block individual_page_contents %}
 <section class="login">
   <div class="login__container">
-    <h2>Log in</h2>
+    <h2>REGISTRATION</h2>
     <form>
       <input type="text" name="email" placeholder="Email" required>
       <input type="password" name="password" placeholder="Password" required>
+      <input type="password" name="password_confirm" placeholder="Confirm Password" required>
       <button
 	type="submit"
-	hx-post="/login"
+	hx-post="/register"
 	hx-target="#template_pages"
-	>Log in</button>
+	hx-indicator="Sending..."	      
+	>Register</button>
     </form>
-    <p>Don't have an account? <a href="/registration">Register</a></p>
   </div>
 </section>
 

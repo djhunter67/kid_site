@@ -5,7 +5,10 @@ use mongodb::{
     Client, Collection,
 };
 use serde::{Deserialize, Serialize};
-use std::env;
+use std::{
+    env,
+    fmt::{self, Display, Formatter},
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -13,8 +16,35 @@ pub struct User {
     pub id: Option<ObjectId>,
     pub name: String,
     pub sign_up_date: String,
-    pub username: String,
+    pub email: String,
     pub password: String,
+}
+
+impl User {
+    pub const fn new(
+        name: String,
+        sign_up_date: String,
+        email: String,
+        password: String,
+    ) -> Self {
+        Self {
+            id: None,
+            name,
+            sign_up_date,
+            email,
+            password,
+        }
+    }
+}
+
+impl Display for User {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(
+            f,
+            "User {{ id: {:?}, name: {}, sign_up_date: {}, email: {}, password: {} }}",
+            self.id, self.name, self.sign_up_date, self.email, self.password
+        )
+    }
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -50,8 +80,8 @@ impl MongoRepo {
             id: None,
             name: new_user.name,
             sign_up_date: new_user.sign_up_date,
-            username: new_user.username,
-	    password: new_user.password,
+            email: new_user.email,
+            password: new_user.password,
         };
 
         let user = self
@@ -97,7 +127,7 @@ impl MongoRepo {
             "$set": {
             "name": new_user.name,
             "sign_up_date": new_user.sign_up_date,
-            "username": new_user.username,
+            "username": new_user.email,
             }
         };
 

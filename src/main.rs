@@ -1,8 +1,15 @@
 mod endpoints;
 mod models;
 
-use actix_web::{http::KeepAlive, middleware, web::Data, App, HttpServer};
-use endpoints::routes::{create_user, delete_user, get_user, get_users, index, login, update_user};
+use actix_web::{
+    http::KeepAlive,
+    middleware::{self},
+    web::Data,
+    App, HttpServer,
+};
+use endpoints::{
+    index::index, login::{ login, registration, submit_login}, users::{create_user, delete_user, get_user, get_users, update_user}
+};
 use log::{debug, error, info, LevelFilter};
 use models::mongo::MongoRepo;
 use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
@@ -57,8 +64,10 @@ async fn main() -> io::Result<()> {
             )
             .service(login)
             .service(index)
-            .service(create_user)
+            .service(submit_login)
+            .service(registration)
             // Database operations
+            .service(create_user)
             .service(get_user)
             .service(update_user)
             .service(delete_user)

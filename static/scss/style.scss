@@ -2,70 +2,25 @@ $inner_background: hsl(0, 0%, 100%);
 $card_background: hsl(206, 30%, 40%);
 
 @import 'login';
+// @import 'errors';
+@import 'main';
 
 body {
     background-color: coral;
     height: 100dvh;
     width: 100dvw;
     display: grid;
-    place-items: center;
+    grid-template-rows: 1fr 4fr 1fr;
+    grid-template-columns: 1fr 4fr 1fr;
+    grid-template-areas: 
+	"header-left header header-right"
+	"main-left main main-right"
+	"footer-left footer footer-right";
+    justify-items: center;
+    align-items: center;
     margin: 0;
     padding: 0;
 
 }
 
-#template_pages {
-    width: 1280px;
-    height: 720px;
-    border-radius: 30px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    margin: 0 auto;
 
-    background-color: $inner_background;
-
-    #card_container {
-    	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-	gap: 12rem;
-
-	&__english, &__science {
-	    width: 300px;
-	    height: 200px;
-	    border-radius: 20px;
-	    display: flex;
-	    flex-direction: column;
-	    justify-content: center;
-	    align-items: center;
-	    gap: 10px;
-	    padding: 20px;
-	    background-color: $card_background;
-	    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-
-	    h1 {
-		font-size: 3rem;
-		font-weight: 600;
-		color: black;
-		padding: 0;
-	    }	    
-
-	    button {
-		width: 100%;
-		padding: 10px;
-		border: none;
-		border-radius: 2.5rem;
-		background-color: coral;
-		color: $card_background;
-		font-size: 1rem;
-		font-weight: 600;
-		cursor: pointer;
-	    }
-	}
-    }
-}

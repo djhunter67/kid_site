@@ -1,0 +1,39 @@
+$error_red: hsl(0, 100%, 50%); // red
+
+
+#error_block {
+    grid-area: header;
+    
+    width: 280px;
+    height: 80px;
+    border-radius: 30px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+
+    background-color: $inner_background;
+
+    .error {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	// gradient background
+	
+	&__information {
+	    font-size: 1em;
+	    margin: 1em;
+	}
+
+	@keyframes error {
+	    0% {
+		transform: scale(0.5);
+	    }
+	    100% {
+		transform: scale(1);
+	    }
+	}
+    }
+}

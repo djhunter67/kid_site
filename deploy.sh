@@ -1,7 +1,7 @@
 #/usr/bin/env bash
 
-DESTINATION=$1
-DEST_PATH=$2
+readonly DESTINATION=$1
+readonly DEST_PATH="/home/djhunter67/app"
 
 # Look in the target/release/ directory for the binary and that is the name of the application
 APP_NAME=$(ls target/release/ | head -n 1)
@@ -13,19 +13,14 @@ if [ -z "$DESTINATION" ]; then
     exit 1
 fi
 
-if [ -z "$DEST_PATH" ]; then
-    echo "Destination path is required"
-    $DEST_PATH = "/home/$USER/app"
-fi
-
 # mkdir the target directory on the target machine
-ssh -t $DESTINATION "mkdir -p $DEST_PATH"
+ssh -t $DESTINATION "mkdir -p ${DEST_PATH}"
 
 # Build the Rust application
 cargo build --release
 
 # Copy the binary to the server
-rsync -Pauvht --stats {.env,static,target/release/$APP_NAME} $DESTINATION:$DEST_PATH
+rsync -Pauvht --stats {.env,static,target/release/$APP_NAME} $DESTINATION:${DEST_PATH}
 
 # Check if the last command was successful
 if [ $? -eq 0 ]; then
@@ -75,8 +70,7 @@ EOF
     SERVICE_FILE="$DEST_PATH/$APP_NAME.service"
 
     # Copy the service file to the server
-    rsync -Pauvht --stats $APP_NAME.service $DESTINATION:~
-    # Echo in yellow
+    rsync -Pauvht --stats $APP_NAME.service $DESTINATION:~/
     echo -e "\e[33mCopying the service file\e[0m"
     ssh -t $DESTINATION "sudo cp ~/$APP_NAME.service /etc/systemd/system/"
     # Check if the last command was successful
