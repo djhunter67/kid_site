@@ -5,7 +5,7 @@ $error_red: hsl(0, 100%, 50%); // red
     position: relative;
     z-index: 100;
     grid-area: header;
-    width: fit-content;
+    width: 200px;
     height: 80px;
     border-radius: 30px;
     display: flex;
@@ -14,8 +14,7 @@ $error_red: hsl(0, 100%, 50%); // red
     align-items: center;
     margin: 0 auto;
     color: black;
-
-    background-color: $inner_background;
+    background-color: $error_red;
 
     .error {
 	display: flex;

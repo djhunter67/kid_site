@@ -1,13 +1,14 @@
 {% extends "base.html" %}
 {% block title %} {{ title }} {% endblock %}
 {% block head %}
+<script defer src="/response-targets"></script>
 {% endblock %}
 
 {% block individual_page_contents %}
-<section class="login" hx-ext="response-targets">
+<section class="login">
   <div class="login__container" >
     <h2>Log in</h2>
-    <form>
+    <form hx-ext="response-targets">
       <input type="text" name="email" placeholder="Email" required>
       <input type="password" name="password" placeholder="Password" required>
       <button
@@ -20,5 +21,4 @@
     <p>Don't have an account? <a href="/registration">Register</a></p>
   </div>
 </section>
-
 {% call super() %} {% endblock %}
