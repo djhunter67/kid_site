@@ -24,7 +24,7 @@ debug-assertions = false
 
 [dependencies]
 actix-files = "0.6.6"
-actix-web = "4.9.0"
+actix-web = { version = "4.9.0", features = ["secure-cookies"] }
 askama = "0.12.1"
 dotenv = "0.15.0"
 future-utils = "0.12.1"

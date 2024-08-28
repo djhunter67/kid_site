@@ -1,4 +1,5 @@
 use actix_web::{
+    cookie::Cookie,
     get, post,
     web::{Data, Form},
     HttpResponse,
@@ -18,7 +19,11 @@ use crate::{
 use super::structure::Registration;
 
 #[get("/")]
-pub async fn login() -> HttpResponse {
+pub async fn login<'a>(_db: Data<MongoRepo>) -> HttpResponse {
+    // let cookie = cookie.value();
+
+    // let confirm_cookie: Cookie = db.get_cookie(cookie).await;
+
     let template = LoginPage { title: "Quiz site" };
 
     let body = match template.render() {
@@ -79,6 +84,22 @@ pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) ->
     // return HttpResponse::Unauthorized().body("Invalid username or password");
     // }
 
+    let secure_cookie: Cookie = actix_web::cookie::Cookie::build("session", "token")
+        .http_only(true)
+        .secure(true)
+        .finish();
+
+    // Save the cookie to the database for the user
+    match db.save_cookie(user, secure_cookie.clone()).await {
+        Ok(_) => {
+            info!("Cookie saved to database");
+        }
+        Err(err) => {
+            error!("Error saving cookie to database: {err:#?}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    }
+
     let template = Index { title: "AJ Quiz" };
     let body = match template.render() {
         Ok(body) => body,
@@ -90,6 +111,7 @@ pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) ->
 
     HttpResponse::Ok()
         .content_type("text/html")
+        .cookie(secure_cookie)
         .append_header(("Authorization", "Bearer token"))
         .body(body)
 }
@@ -176,10 +198,10 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
             Ok(body) => body,
             Err(err) => {
                 error!("Error rendering template: {err:#?}");
-                return HttpResponse::InternalServerError().finish();}
-	    
+                return HttpResponse::InternalServerError().finish();
+            }
         };
-	// User Error
+        // User Error
         return HttpResponse::BadRequest()
             .content_type("text/html")
             .body(body);
@@ -229,3 +251,35 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
     }
 }
 
+#[post("/logout")]
+pub async fn logout(db: Data<MongoRepo>) -> HttpResponse {
+    let secure_cookie: Cookie = actix_web::cookie::Cookie::build("session", "token")
+        .http_only(true)
+        .secure(true)
+        .finish();
+
+    match db.delete_cookie(secure_cookie.clone()).await {
+        Ok(_) => {
+            info!("Cookie deleted from database");
+        }
+        Err(err) => {
+            error!("Error deleting cookie from database: {err:#?}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    }
+
+    let template = LoginPage { title: "Quiz site" };
+
+    let body = match template.render() {
+        Ok(body) => body,
+        Err(err) => {
+            error!("Error rendering template: {err:#?}");
+            return HttpResponse::InternalServerError().finish();
+        }
+    };
+
+    HttpResponse::Ok()
+        .content_type("text/html")
+        .cookie(secure_cookie)
+        .body(body)
+}

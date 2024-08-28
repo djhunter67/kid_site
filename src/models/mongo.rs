@@ -1,3 +1,4 @@
+use actix_web::cookie::Cookie;
 use log::error;
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId, DateTime},
@@ -185,5 +186,61 @@ impl MongoRepo {
         }
 
         Ok(users)
+    }
+
+    pub async fn save_cookie(
+        &self,
+        user_id: User,
+        cookie: Cookie<'_>,
+    ) -> Result<UpdateResult, Error> {
+        let obj_id = match ObjectId::parse_str(user_id.id.unwrap_or_default().to_string().as_str())
+        {
+            Ok(id_data) => id_data,
+            Err(err) => {
+                error!("Failed to parse ObjectId: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to parse ObjectId".to_string(),
+                });
+            }
+        };
+
+        let filter = doc! { "_id": obj_id };
+        let new_doc = doc! {
+            "$set": {
+            "cookie": cookie.value(),
+            }
+        };
+
+        let updated_doc = self
+            .collection
+            .update_one(filter, new_doc)
+            .await
+            .expect("Failed to update document in collection");
+
+        Ok(updated_doc)
+    }
+
+    pub async fn get_cookie(&self, cookie: Cookie<'_>) -> Result<User, Error> {
+        let filter = doc! { "cookie": cookie.value() };
+
+        let user = self
+            .collection
+            .find_one(filter)
+            .await
+            .expect("Failed to find document in collection");
+
+        Ok(user.expect("Failed to find user"))
+    }
+
+    pub async fn delete_cookie(&self, cookie: Cookie<'_>) -> Result<DeleteResult, Error> {
+        let filter = doc! { "cookie": cookie.value() };
+
+        let deleted_doc = self
+            .collection
+            .delete_one(filter)
+            .await
+            .expect("Failed to delete user in collection");
+
+        Ok(deleted_doc)
     }
 }
