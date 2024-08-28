@@ -1,27 +1,5 @@
-23:36:15 [DEBUG] (1) aj_studying: Logger initialized
-23:36:15 [INFO] Launched on PORT: 8099
-23:36:15 [INFO] starting 2 workers
-23:36:15 [INFO] Actix runtime found; starting in Actix runtime
-23:36:15 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
-23:36:16 [INFO] 127.0.0.1 "GET / HTTP/1.1" 200 1171 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000600
-23:36:16 [INFO] 127.0.0.1 "GET /stylesheet HTTP/1.1" 200 2464 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000405
-23:36:16 [INFO] 127.0.0.1 "GET /htmx HTTP/1.1" 200 49567 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.001538
-23:36:16 [INFO] 127.0.0.1 "GET /response-targets HTTP/1.1" 200 3722 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000611
-23:36:16 [INFO] 127.0.0.1 "GET /favicon HTTP/1.1" 200 2965 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000219
-23:36:16 [INFO] 127.0.0.1 "GET /style.css.map HTTP/1.1" 200 892 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000336
-23:36:17 [INFO] 127.0.0.1 "GET / HTTP/1.1" 200 1171 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000246
-23:36:17 [INFO] 127.0.0.1 "GET /stylesheet HTTP/1.1" 200 2464 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000158
-23:36:17 [INFO] 127.0.0.1 "GET /htmx HTTP/1.1" 200 49567 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000293
-23:36:17 [INFO] 127.0.0.1 "GET /response-targets HTTP/1.1" 200 3722 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000174
-23:36:17 [INFO] 127.0.0.1 "GET /favicon HTTP/1.1" 200 2965 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000151
-23:36:17 [INFO] 127.0.0.1 "GET /style.css.map HTTP/1.1" 200 892 "-" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000260
-23:36:20 [WARN] User ID: , Password: 
-23:36:20 [ERROR] Error getting user:  -- ERROR: DeserializationError {
-    message: "Failed to parse ObjectId",
-}
-23:36:20 [INFO] 127.0.0.1 "POST /login HTTP/1.1" 401 844 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.001084
-23:36:26 [WARN] User ID: , Password: 
-23:36:26 [ERROR] Error getting user:  -- ERROR: DeserializationError {
-    message: "Failed to parse ObjectId",
-}
-23:36:26 [INFO] 127.0.0.1 "POST /login HTTP/1.1" 401 844 "http://localhost:8099/" "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/129.0" 0.000441
+01:00:44 [DEBUG] (1) aj_studying: Logger initialized
+01:00:44 [INFO] Launched on PORT: 8099
+01:00:44 [INFO] starting 2 workers
+01:00:44 [INFO] Actix runtime found; starting in Actix runtime
+01:00:44 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099

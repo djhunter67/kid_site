@@ -260,6 +260,7 @@ dependencies = [
  "askama",
  "dotenv",
  "future-utils",
+ "lazy_static",
  "log 0.4.22",
  "mongodb",
  "serde",

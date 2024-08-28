@@ -176,11 +176,11 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
             Ok(body) => body,
             Err(err) => {
                 error!("Error rendering template: {err:#?}");
-                return HttpResponse::InternalServerError().finish();
-            }
+                return HttpResponse::InternalServerError().finish();}
+	    
         };
-
-        return HttpResponse::InternalServerError()
+	// User Error
+        return HttpResponse::BadRequest()
             .content_type("text/html")
             .body(body);
     }
@@ -228,3 +228,4 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
         }
     }
 }
+

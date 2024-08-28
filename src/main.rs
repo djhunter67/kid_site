@@ -1,5 +1,6 @@
 mod endpoints;
 mod models;
+mod security;
 
 use actix_files::NamedFile;
 use actix_web::{
@@ -61,13 +62,6 @@ async fn main() -> io::Result<()> {
         App::new()
             .wrap(middleware::Logger::default())
             .app_data(db_data.clone())
-            // .service(
-            //     actix_files::Files::new("/static", ".")
-            //         .index_file("base.html")
-            //         .prefer_utf8(true)
-            //         .show_files_listing()
-            //         .use_last_modified(true),
-            // )
             .service(favicon)
             .service(stylesheet)
             .service(source_map)
