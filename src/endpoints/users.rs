@@ -3,7 +3,7 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse,
 };
-use log::{error, info};
+use tracing::{error, info};
 use mongodb::bson::oid::ObjectId;
 
 use crate::models::mongo::{MongoRepo, User};

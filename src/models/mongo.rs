@@ -1,5 +1,4 @@
 use actix_web::cookie::Cookie;
-use log::error;
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId, DateTime},
     results::{DeleteResult, InsertOneResult, UpdateResult},
@@ -10,6 +9,7 @@ use std::{
     env,
     fmt::{self, Display, Formatter},
 };
+use tracing::error;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
@@ -22,6 +22,7 @@ pub struct User {
 }
 
 impl User {
+    #[must_use]
     pub const fn new(
         name: String,
         sign_up_date: DateTime,
@@ -76,6 +77,12 @@ impl MongoRepo {
         Self { collection }
     }
 
+    /// # Results
+    ///   - Returns an `InsertOneResult` if the document is successfully inserted into the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to insert into the collection
+    /// # Panics
+    ///   - If the document fails to insert into the collection
     pub async fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
         let new_doc = User {
             id: None,
@@ -94,6 +101,12 @@ impl MongoRepo {
         Ok(user)
     }
 
+    /// # Results
+    ///   - Returns a `User` if the document is successfully found in the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to find in the collection
+    /// # Panics
+    ///   - If the document fails to find in the collection
     pub async fn get_user(&self, id: &str) -> Result<User, Error> {
         let Ok(object_id) = ObjectId::parse_str(id) else {
             return Err(Error::DeserializationError {
@@ -112,6 +125,12 @@ impl MongoRepo {
         Ok(user.expect("Failed to find user"))
     }
 
+    /// # Results
+    ///   - Returns an `UpdateResult` if the document is successfully updated in the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to update in the collection
+    /// # Panics
+    ///   - If the document fails to update in the collection
     pub async fn update_user(&self, id: String, new_user: User) -> Result<UpdateResult, Error> {
         let obj_id = match ObjectId::parse_str(id) {
             Ok(id_data) => id_data,
@@ -141,6 +160,12 @@ impl MongoRepo {
         Ok(updated_doc)
     }
 
+    /// # Results
+    ///   - Returns a `DeleteResult` if the document is successfully deleted from the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to delete from the collection
+    /// # Panics
+    ///   - If the document fails to delete from the collection
     pub async fn delete_user(&self, id: String) -> Result<DeleteResult, Error> {
         let obj_id = match ObjectId::parse_str(id) {
             Ok(id_data) => id_data,
@@ -163,6 +188,12 @@ impl MongoRepo {
         Ok(deleted_doc)
     }
 
+    /// # Results
+    ///   - Returns a `Vec<User>` if the documents are successfully found in the collection
+    /// # Errors
+    ///   - Returns an `Error` if the documents fail to find in the collection
+    /// # Panics
+    ///   - If the documents fail to find in the collection
     pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
         let mut users: Vec<User> = Vec::new();
 
@@ -188,6 +219,12 @@ impl MongoRepo {
         Ok(users)
     }
 
+    /// # Results
+    ///   - Returns an `UpdateResult` if the cookie is successfully updated in the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to update in the collection
+    /// # Panics
+    ///   - If the document fails to update in the collection
     pub async fn save_cookie(
         &self,
         user_id: User,
@@ -221,6 +258,12 @@ impl MongoRepo {
     }
 
     #[allow(dead_code)]
+    /// # Results
+    ///   - Returns a `User` if the cookie is successfully found in the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to find in the collection
+    /// # Panics
+    ///   - If the document fails to find in the collection
     pub async fn get_cookie(&self, cookie: Cookie<'_>) -> Result<User, Error> {
         let filter = doc! { "cookie": cookie.value() };
 
@@ -233,6 +276,12 @@ impl MongoRepo {
         Ok(user.expect("Failed to find user"))
     }
 
+    /// # Results
+    ///   - Returns a `DeleteResult` if the cookie is successfully deleted from the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to delete from the collection
+    /// # Panics
+    ///   - If the document fails to delete from the collection
     pub async fn delete_cookie(&self, cookie: Cookie<'_>) -> Result<DeleteResult, Error> {
         let filter = doc! { "cookie": cookie.value() };
 

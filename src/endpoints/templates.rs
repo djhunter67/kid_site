@@ -1,4 +1,9 @@
+use std::path::PathBuf;
+
+use actix_files::NamedFile;
+use actix_web::{get, HttpResponse, Responder};
 use askama::Template;
+use tracing::error;
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -25,4 +30,50 @@ pub struct ErrorPage<'a> {
     pub code: u16,
     pub error: &'a str,
     pub message: &'a str,
+}
+
+#[get("/favicon")]
+async fn favicon() -> impl Responder {
+    let file = include_str!("../../static/imgs/education.svg");
+    HttpResponse::Ok().content_type("icon").body(file)
+}
+
+#[get("/stylesheet")]
+async fn stylesheet() -> impl Responder {
+    let file = include_str!("../../static/css/style.css");
+    HttpResponse::Ok().content_type("text/css").body(file)
+}
+
+#[get("/style.css.map")]
+async fn source_map() -> impl Responder {
+    let file = include_str!("../../static/css/style.css.map");
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(file)
+}
+
+#[get("/htmx")]
+async fn htmx() -> Result<NamedFile, actix_web::Error> {
+    let path: PathBuf = ["static", "assets", "htmx", "htmx.min.js"].iter().collect();
+    match NamedFile::open(path) {
+        Ok(file) => Ok(file),
+        Err(err) => {
+            error!("Error opening file: {err:#?}");
+            Err(actix_web::error::ErrorInternalServerError(err))
+        }
+    }
+}
+
+#[get("/response-targets")]
+async fn response_targets() -> Result<NamedFile, actix_web::Error> {
+    let pash: PathBuf = ["static", "assets", "htmx", "response-targets.js"]
+        .iter()
+        .collect();
+    match NamedFile::open(pash) {
+        Ok(file) => Ok(file),
+        Err(err) => {
+            error!("Error opening file: {err:#?}");
+            Err(actix_web::error::ErrorInternalServerError(err))
+        }
+    }
 }

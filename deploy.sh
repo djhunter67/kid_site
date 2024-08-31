@@ -2,11 +2,12 @@
 
 readonly DESTINATION=$1
 readonly DEST_PATH="/home/ripley/app"
+readonly TARGET_ARCH=aarch64-unknown-linux-gnu
 readonly SOURCE_PATH=target/${TARGET_ARCH}/release/aj_studying
 
-# Look in the target/release/ directory for the binary and that is the name of the application
-APP_NAME=$(ls target/release/ | head -n 1)
 
+# Look in the target/release/ directory for the binary and that is the name of the application
+APP_NAME=$(ls target/$TARGET_ARCH/release/ | head -n 1)
 
 if [ -z "$DESTINATION" ]; then
     echo "Destination is required"
@@ -20,8 +21,9 @@ fi
 # Build the Rust application
 echo -e "\e[33mBuilding the Rust application for Release\e[0m"
 # cargo build --release --quiet # 2>&1 > /dev/null
-cross build --target=aarch64-unknown-linux-gnu
+cross build --release --target=aarch64-unknown-linux-gnu
 
+echo -e "\e[33mCopying the binary to the server\e[0m"
 # Copy the binary to the server
 rsync -Pauvht --stats {.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
 
@@ -70,7 +72,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-    SERVICE_FILE="$DEST_PATH/$APP_NAME.service"
+    SERVICE_FILE="$DEST_PATH/aj_studying.service"
 
     # Copy the service file to the server
     rsync -Pauvht --stats $APP_NAME.service $DESTINATION:~/ 2>&1 > /dev/null

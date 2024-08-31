@@ -5,7 +5,7 @@ use actix_web::{
     HttpResponse,
 };
 use askama::Template;
-use log::{debug, error, info, warn};
+use tracing::{debug, error, info, warn};
 use mongodb::bson::datetime;
 
 use crate::{
@@ -152,6 +152,7 @@ pub async fn registration() -> HttpResponse {
 
 #[post("/register")]
 pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>) -> HttpResponse {
+    // Error case
     if (credential.password.is_empty() || credential.password_confirm.is_empty())
         || (credential.email.is_empty())
         || (credential.password != credential.password_confirm)
@@ -176,11 +177,11 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
             .body(body);
     }
 
+    // TODO!: remove logging passwords in plain text
     warn!(
         "User ID: {}, Password: {}, Password Confirm: {}",
         credential.email, credential.password, credential.password_confirm
     );
-
     debug!(
         "Password Match: {}",
         credential.password == credential.password_confirm
