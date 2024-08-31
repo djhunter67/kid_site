@@ -220,6 +220,7 @@ impl MongoRepo {
         Ok(updated_doc)
     }
 
+    #[allow(dead_code)]
     pub async fn get_cookie(&self, cookie: Cookie<'_>) -> Result<User, Error> {
         let filter = doc! { "cookie": cookie.value() };
 

@@ -1,7 +1,8 @@
 #/usr/bin/env bash
 
 readonly DESTINATION=$1
-readonly DEST_PATH="/home/djhunter67/app"
+readonly DEST_PATH="/home/ripley/app"
+readonly SOURCE_PATH=target/${TARGET_ARCH}/release/aj_studying
 
 # Look in the target/release/ directory for the binary and that is the name of the application
 APP_NAME=$(ls target/release/ | head -n 1)
@@ -18,10 +19,11 @@ fi
 
 # Build the Rust application
 echo -e "\e[33mBuilding the Rust application for Release\e[0m"
-cargo build --release --quiet # 2>&1 > /dev/null
+# cargo build --release --quiet # 2>&1 > /dev/null
+cross build --target=aarch64-unknown-linux-gnu
 
 # Copy the binary to the server
-rsync -Pauvht --stats {.env,static,target/release/$APP_NAME} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
+rsync -Pauvht --stats {.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
 
 # Check if the last command was successful
 if [ $? -eq 0 ]; then
@@ -59,9 +61,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=djhunter67
-WorkingDirectory=/home/djhunter67/app
-ExecStart=/home/djhunter67/app/aj_studying
+User=ripley
+WorkingDirectory=/home/ripley/app
+ExecStart=/home/ripley/app/aj_studying
 Restart=on-failure
 
 [Install]
@@ -145,3 +147,22 @@ else
     echo -e "\e[31m############################################################\e[0m"
     exit 1
 fi
+
+
+
+# set -o errexit
+# set -o nounset
+# set -o pipefail
+# set -o xtrace
+
+# USER_NAME="ripley"
+# IP=192.168.110.51
+
+# readonly TARGET_HOST=$USER_NAME@$IP
+# readonly TARGET_PATH=/home/$USER_NAME
+# readonly TARGET_ARCH=aarch64-unknown-linux-gnu
+# readonly SOURCE_PATH=./target/${TARGET_ARCH}/release/aj_studying
+
+# cross build --release --target=${TARGET_ARCH}
+# rsync -Pauvht --stats ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH}
+# ssh -t ${TARGET_HOST} sudo systemctl restart antenna_switcher_api.service

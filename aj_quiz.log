@@ -1,5 +1,5 @@
-01:00:44 [DEBUG] (1) aj_studying: Logger initialized
-01:00:44 [INFO] Launched on PORT: 8099
-01:00:44 [INFO] starting 2 workers
-01:00:44 [INFO] Actix runtime found; starting in Actix runtime
-01:00:44 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
+14:47:50 [DEBUG] (1) aj_studying: Logger initialized
+14:47:50 [INFO] Launched on PORT: 8099
+14:47:50 [INFO] starting 2 workers
+14:47:50 [INFO] Actix runtime found; starting in Actix runtime
+14:47:50 [INFO] starting service: "actix-web-service-0.0.0.0:8099", workers: 2, listening on: 0.0.0.0:8099
