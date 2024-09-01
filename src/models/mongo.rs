@@ -2,21 +2,18 @@ use actix_web::cookie::Cookie;
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId, DateTime},
     results::{DeleteResult, InsertOneResult, UpdateResult},
-    Client, Collection,
+    Collection,
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    env,
-    fmt::{self, Display, Formatter},
-};
+use std::fmt::{self, Display, Formatter};
 use tracing::error;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub name: String,
-    pub sign_up_date: DateTime,
+    pub sign_up_date: Option<DateTime>,
     pub email: String,
     pub password: String,
 }
@@ -32,7 +29,7 @@ impl User {
         Self {
             id: None,
             name,
-            sign_up_date,
+            sign_up_date: Some(sign_up_date),
             email,
             password,
         }
@@ -43,7 +40,7 @@ impl Display for User {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(
             f,
-            "User {{ id: {:?}, name: {}, sign_up_date: {}, email: {}, password: {} }}",
+            "User {{ id: {:?}, name: {}, sign_up_date: {:#?}, email: {}, password: {} }}",
             self.id, self.name, self.sign_up_date, self.email, self.password
         )
     }
@@ -55,25 +52,8 @@ pub struct MongoRepo {
 }
 
 impl MongoRepo {
-    pub async fn init() -> Self {
-        dotenv::dotenv().ok();
-        let uri = match env::var("MONGOURI") {
-            Ok(url) => url,
-            Err(err) => {
-                error!("MONGOURI not found in .env: {err}");
-                std::process::exit(1);
-            }
-        };
-        let client = match Client::with_uri_str(&uri).await {
-            Ok(client) => client,
-            Err(err) => {
-                error!("Failed to connect to MongoDB: {err}\nExiting...");
-                std::process::exit(1);
-            }
-        };
-        let db = client.database("study_pwa");
-        let collection: Collection<User> = db.collection("users");
-
+    #[must_use]
+    pub const fn new(collection: Collection<User>) -> Self {
         Self { collection }
     }
 
@@ -87,7 +67,7 @@ impl MongoRepo {
         let new_doc = User {
             id: None,
             name: new_user.name,
-            sign_up_date: new_user.sign_up_date,
+            sign_up_date: Some(DateTime::now()),
             email: new_user.email,
             password: new_user.password,
         };

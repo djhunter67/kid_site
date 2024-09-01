@@ -1,6 +1,6 @@
 use actix_web::{get, HttpResponse};
 use askama::Template;
-use log::error;
+use tracing::error;
 
 use crate::endpoints::templates::Index;
 

@@ -5,8 +5,8 @@ use actix_web::{
     HttpResponse,
 };
 use askama::Template;
+use mongodb::bson::DateTime;
 use tracing::{debug, error, info, warn};
-use mongodb::bson::datetime;
 
 use crate::{
     endpoints::{
@@ -20,6 +20,7 @@ use super::structure::Registration;
 
 #[get("/")]
 pub async fn login<'a>(_db: Data<MongoRepo>) -> HttpResponse {
+    info!("Login page requested");
     // let cookie = cookie.value();
 
     // let confirm_cookie: Cookie = db.get_cookie(cookie).await;
@@ -33,6 +34,7 @@ pub async fn login<'a>(_db: Data<MongoRepo>) -> HttpResponse {
             return HttpResponse::InternalServerError().finish();
         }
     };
+    info!("Login page template rendered");
 
     HttpResponse::Ok().content_type("text/html").body(body)
 }
@@ -210,7 +212,7 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
 
     let user = User::new(
         String::new(),
-        datetime::DateTime::now(),
+        DateTime::now(),
         credential.password.clone(),
         credential.email.clone(),
     );

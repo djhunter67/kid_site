@@ -1,11 +1,17 @@
 use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
 
-/// Output JSON in production only
+#[must_use]
+/// # Result
+///  - `None` if the `RUST_LOG` environment variable is not set
+/// # Errors
+///  - If the `RUST_LOG` environment variable is set but the value is invalid
+/// # Panics
+///  - If the `RUST_LOG` environment variable is set but the value is invalid
 pub fn get_subcriber(debug: bool) -> impl tracing::Subscriber + Send + Sync {
     let env_filter = if debug {
-        String::from("trace")
-    } else {
         String::from("info")
+    } else {
+        String::from("debug")
     };
 
     let env_filter =
@@ -24,6 +30,12 @@ pub fn get_subcriber(debug: bool) -> impl tracing::Subscriber + Send + Sync {
     subscriber.with(json_log)
 }
 
+/// # Result
+///  - `None` if the `RUST_LOG` environment variable is not set
+/// # Errors
+///  - If the `RUST_LOG` environment variable is set but the value is invalid
+/// # Panics
+///  - If the `RUST_LOG` environment variable is set but the value is invalid
 pub fn init_subscriber(subscriber: impl tracing::Subscriber + Send + Sync) {
     tracing::subscriber::set_global_default(subscriber).expect("Failed to set subscriber");
 }

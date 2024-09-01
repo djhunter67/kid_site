@@ -3,14 +3,17 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse,
 };
-use tracing::{error, info};
 use mongodb::bson::oid::ObjectId;
+use tracing::{debug, error, info};
 
 use crate::models::mongo::{MongoRepo, User};
 
 #[post("/user")]
-pub async fn create_user(db: Data<MongoRepo>, new_user: Json<User>) -> HttpResponse {
+pub async fn create(client: Data<mongodb::Database>, new_user: Json<User>) -> HttpResponse {
+    info!("Creating user");
+    let db = MongoRepo::new(client.collection("users"));
     let data = new_user.into_inner();
+    debug!("Creating user: {:#?}", data);
 
     let user_details = db.create_user(data).await;
 
@@ -24,7 +27,8 @@ pub async fn create_user(db: Data<MongoRepo>, new_user: Json<User>) -> HttpRespo
 }
 
 #[get("/user/{id}")]
-pub async fn get_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
+pub async fn get_user(client: Data<mongodb::Database>, path: Path<String>) -> HttpResponse {
+    let db = MongoRepo::new(client.collection("users"));
     let user_id = path.into_inner();
 
     if user_id.is_empty() {
@@ -44,10 +48,12 @@ pub async fn get_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
 
 #[put("/user/{id}")]
 pub async fn update_user(
-    db: Data<MongoRepo>,
+    client: Data<mongodb::Database>,
     path: Path<String>,
     new_user: Json<User>,
 ) -> HttpResponse {
+    let db = MongoRepo::new(client.collection("users"));
+
     let user_id = path.into_inner();
 
     if user_id.is_empty() {
@@ -58,7 +64,7 @@ pub async fn update_user(
         id: Some(ObjectId::parse_str(&user_id).expect("Invalid ID")),
         name: new_user.name.clone(),
         email: new_user.email.clone(),
-        sign_up_date: new_user.sign_up_date,
+        sign_up_date: new_user.sign_up_date.clone(),
         password: String::from("************"),
     };
 
@@ -86,7 +92,8 @@ pub async fn update_user(
 }
 
 #[delete("/user/{id}")]
-pub async fn delete_user(db: Data<MongoRepo>, path: Path<String>) -> HttpResponse {
+pub async fn delete_user(client: Data<mongodb::Database>, path: Path<String>) -> HttpResponse {
+    let db = MongoRepo::new(client.collection("users"));
     let user_id = path.into_inner();
 
     if user_id.is_empty() {
@@ -112,7 +119,8 @@ pub async fn delete_user(db: Data<MongoRepo>, path: Path<String>) -> HttpRespons
 }
 
 #[get("/users")]
-pub async fn get_users(db: Data<MongoRepo>) -> HttpResponse {
+pub async fn get_users(client: Data<mongodb::Database>) -> HttpResponse {
+    let db = MongoRepo::new(client.collection("users"));
     info!("Getting all users");
     let users = db.get_all_users().await;
 
