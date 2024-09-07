@@ -23,6 +23,7 @@ lazy_static! {
 }
 
 #[allow(dead_code)]
+#[must_use]
 pub fn escape_html(input: &str) -> String {
     let user_input = input.to_string();
     let mut result = String::new();

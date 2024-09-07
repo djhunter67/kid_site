@@ -1,4 +1,6 @@
 use actix_web::cookie::Cookie;
+use log::{debug, info};
+use lop::error;
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId, DateTime},
     results::{DeleteResult, InsertOneResult, UpdateResult},
@@ -6,13 +8,17 @@ use mongodb::{
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
-use tracing::error;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+use crate::auth::hash::hash_pw;
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
-    pub name: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub is_active: Option<bool>,
+    pub thumbnail: Option<String>,
     pub sign_up_date: Option<DateTime>,
     pub email: String,
     pub password: String,
@@ -20,18 +26,22 @@ pub struct User {
 
 impl User {
     #[must_use]
-    pub const fn new(
-        name: String,
+    pub async fn new(
+        first_name: String,
+        last_name: String,
         sign_up_date: DateTime,
         email: String,
-        password: String,
+        password: &str,
     ) -> Self {
         Self {
             id: None,
-            name,
+            first_name,
+            last_name,
+            is_active: Some(false),
+            thumbnail: None,
             sign_up_date: Some(sign_up_date),
             email,
-            password,
+            password: hash_pw(password.as_bytes()).await,
         }
     }
 }
@@ -40,8 +50,8 @@ impl Display for User {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(
             f,
-            "User {{ id: {:?}, name: {}, sign_up_date: {:#?}, email: {}, password: {} }}",
-            self.id, self.name, self.sign_up_date, self.email, self.password
+            "User {{ id: {:?}, first_name: {}, last_name: {}, sign_up_date: {:#?}, email: {}, password: *********** }}",
+            self.id, self.first_name, self.last_name, self.sign_up_date, self.email
         )
     }
 }
@@ -66,10 +76,13 @@ impl MongoRepo {
     pub async fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
         let new_doc = User {
             id: None,
-            name: new_user.name,
+            first_name: new_user.first_name,
+            last_name: new_user.last_name,
+            thumbnail: None,
+            is_active: Some(false),
             sign_up_date: Some(DateTime::now()),
             email: new_user.email,
-            password: new_user.password,
+            password: hash_pw(new_user.password.as_bytes()).await,
         };
 
         let user = self
@@ -87,22 +100,78 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to find in the collection
     /// # Panics
     ///   - If the document fails to find in the collection
-    pub async fn get_user(&self, id: &str) -> Result<User, Error> {
-        let Ok(object_id) = ObjectId::parse_str(id) else {
-            return Err(Error::DeserializationError {
-                message: "Failed to parse ObjectId".to_string(),
-            });
+    pub async fn get_user(
+        &self,
+        object_id: Option<ObjectId>,
+        email: Option<&str>,
+    ) -> Result<User, Error> {
+        info!("Get users endpoint hit");
+        let filter = object_id.map_or_else(
+            || {
+                doc! {
+                    "email": email.expect("Failed to find email",
+                )
+                                }
+            },
+            |id| doc! { "_id": id },
+        );
+
+        let user = match self.collection.find_one(filter).await {
+            Ok(user) => {
+                debug!("User found");
+                user
+            }
+            Err(err) => {
+                error!("Failed to find document in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to find document in collection".to_string(),
+                });
+            }
         };
 
-        let filter = doc! { "_id": object_id };
+        Ok(match user {
+            Some(user) => user,
+            None => {
+                error!("Failed to find user");
+                return Err(Error::DeserializationError {
+                    message: "Failed to find user".to_string(),
+                });
+            }
+        })
+    }
 
-        let user = self
-            .collection
-            .find_one(filter)
-            .await
-            .expect("Failed to find document in collection");
+    /// # Results
+    ///   - Returns a `User` if the document, filtered on email,  has is_active == true in the collection
+    /// # Errors
+    ///   - Returns an `Error` if the document fails to find in the collection
+    /// # Panics
+    ///   - If the document fails to find in the collection
+    pub async fn get_active_user(&self, email: &str) -> Result<User, Error> {
+        info!("Get active user endpoint hit");
+        let filter = doc! { "email": email, "is_active": true };
 
-        Ok(user.expect("Failed to find user"))
+        let user = match self.collection.find_one(filter).await {
+            Ok(user) => {
+                debug!("User found");
+                user
+            }
+            Err(err) => {
+                error!("Failed to find document in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to find document in collection".to_string(),
+                });
+            }
+        };
+
+        Ok(match user {
+            Some(user) => user,
+            None => {
+                error!("Failed to find user");
+                return Err(Error::DeserializationError {
+                    message: "Failed to find user".to_string(),
+                });
+            }
+        })
     }
 
     /// # Results
@@ -111,31 +180,37 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to update in the collection
     /// # Panics
     ///   - If the document fails to update in the collection
-    pub async fn update_user(&self, id: String, new_user: User) -> Result<UpdateResult, Error> {
-        let obj_id = match ObjectId::parse_str(id) {
-            Ok(id_data) => id_data,
+    pub async fn update_user(
+        &self,
+        object_id: ObjectId,
+        new_user: User,
+    ) -> Result<UpdateResult, Error> {
+        info!("Update user endpoint hit");
+        let filter = doc! { "_id": object_id };
+        let new_doc = doc! {
+            "$set": {
+        "first_name": new_user.first_name,
+        "last_name": new_user.last_name,
+        "email": new_user.email,
+        "thumbnail": new_user.thumbnail,
+        "sign_up_date": new_user.sign_up_date,
+        "is_active": new_user.is_active,
+        "password": hash_pw(new_user.password.as_bytes()).await,
+            }
+        };
+
+        let updated_doc = match self.collection.update_one(filter, new_doc).await {
+            Ok(doc) => {
+                debug!("User updated");
+                doc
+            }
             Err(err) => {
-                error!("Failed to parse ObjectId: {err}");
+                error!("Failed to update document in collection: {err}");
                 return Err(Error::DeserializationError {
-                    message: "Failed to parse ObjectId".to_string(),
+                    message: "Failed to update document in collection".to_string(),
                 });
             }
         };
-
-        let filter = doc! { "_id": obj_id };
-        let new_doc = doc! {
-            "$set": {
-            "name": new_user.name,
-            "sign_up_date": new_user.sign_up_date,
-            "username": new_user.email,
-            }
-        };
-
-        let updated_doc = self
-            .collection
-            .update_one(filter, new_doc)
-            .await
-            .expect("Failed to update document in collection");
 
         Ok(updated_doc)
     }
@@ -147,6 +222,7 @@ impl MongoRepo {
     /// # Panics
     ///   - If the document fails to delete from the collection
     pub async fn delete_user(&self, id: String) -> Result<DeleteResult, Error> {
+        info!("Delete user endpoint hit");
         let obj_id = match ObjectId::parse_str(id) {
             Ok(id_data) => id_data,
             Err(err) => {
@@ -159,11 +235,18 @@ impl MongoRepo {
 
         let filter = doc! { "_id": obj_id };
 
-        let deleted_doc = self
-            .collection
-            .delete_one(filter)
-            .await
-            .expect("Failed to delete user in collection");
+        let deleted_doc = match self.collection.delete_one(filter).await {
+            Ok(doc) => {
+                debug!("User deleted");
+                doc
+            }
+            Err(err) => {
+                error!("Failed to delete document in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to delete document in collection".to_string(),
+                });
+            }
+        };
 
         Ok(deleted_doc)
     }
@@ -175,24 +258,40 @@ impl MongoRepo {
     /// # Panics
     ///   - If the documents fail to find in the collection
     pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
+        info!("Get all users endpoint hit");
         let mut users: Vec<User> = Vec::new();
 
-        let cursor = self
-            .collection
-            .find(doc! {})
-            .await
-            .expect("Failed to find documents in collection");
+        let cursor = match self.collection.find(doc! {}).await {
+            Ok(cursor_data) => cursor_data,
+            Err(err) => {
+                error!("Failed to find documents in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to find documents in collection".to_string(),
+                });
+            }
+        };
 
-        let cursor_count = self
-            .collection
-            .count_documents(doc! {})
-            .await
-            .expect("Failed to count documents in collection");
+        let cursor_count = match self.collection.count_documents(doc! {}).await {
+            Ok(count) => count,
+            Err(err) => {
+                error!("Failed to count documents in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to count documents in collection".to_string(),
+                });
+            }
+        };
 
         for _ in 0..cursor_count {
-            let user = cursor
-                .deserialize_current()
-                .expect("Failed to extract user");
+            let user = match cursor.deserialize_current() {
+                Ok(user_data) => user_data,
+                Err(err) => {
+                    error!("Failed to deserialize document in collection: {err}");
+                    return Err(Error::DeserializationError {
+                        message: "Failed to deserialize document in collection".to_string(),
+                    });
+                }
+            };
+
             users.push(user);
         }
 
@@ -210,6 +309,7 @@ impl MongoRepo {
         user_id: User,
         cookie: Cookie<'_>,
     ) -> Result<UpdateResult, Error> {
+        info!("Save cookie endpoint hit");
         let obj_id = match ObjectId::parse_str(user_id.id.unwrap_or_default().to_string().as_str())
         {
             Ok(id_data) => id_data,
@@ -228,11 +328,18 @@ impl MongoRepo {
             }
         };
 
-        let updated_doc = self
-            .collection
-            .update_one(filter, new_doc)
-            .await
-            .expect("Failed to update document in collection");
+        let updated_doc = match self.collection.update_one(filter, new_doc).await {
+            Ok(doc) => {
+                debug!("Cookie updated");
+                doc
+            }
+            Err(err) => {
+                error!("Failed to update document in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to update document in collection".to_string(),
+                });
+            }
+        };
 
         Ok(updated_doc)
     }
@@ -245,15 +352,31 @@ impl MongoRepo {
     /// # Panics
     ///   - If the document fails to find in the collection
     pub async fn get_cookie(&self, cookie: Cookie<'_>) -> Result<User, Error> {
+        info!("Get cookie endpoint hit");
         let filter = doc! { "cookie": cookie.value() };
 
-        let user = self
-            .collection
-            .find_one(filter)
-            .await
-            .expect("Failed to find document in collection");
+        let user = match self.collection.find_one(filter).await {
+            Ok(user) => {
+                debug!("User found");
+                user
+            }
+            Err(err) => {
+                error!("Failed to find document in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to find document in collection".to_string(),
+                });
+            }
+        };
 
-        Ok(user.expect("Failed to find user"))
+        Ok(match user {
+            Some(user) => user,
+            None => {
+                error!("Failed to find user");
+                return Err(Error::DeserializationError {
+                    message: "Failed to find user".to_string(),
+                });
+            }
+        })
     }
 
     /// # Results
@@ -263,13 +386,21 @@ impl MongoRepo {
     /// # Panics
     ///   - If the document fails to delete from the collection
     pub async fn delete_cookie(&self, cookie: Cookie<'_>) -> Result<DeleteResult, Error> {
+        info!("Delete cookie endpoint hit");
         let filter = doc! { "cookie": cookie.value() };
 
-        let deleted_doc = self
-            .collection
-            .delete_one(filter)
-            .await
-            .expect("Failed to delete user in collection");
+        let deleted_doc = match self.collection.delete_one(filter).await {
+            Ok(doc) => {
+                debug!("Cookie deleted");
+                doc
+            }
+            Err(err) => {
+                error!("Failed to delete document in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to delete document in collection".to_string(),
+                });
+            }
+        };
 
         Ok(deleted_doc)
     }

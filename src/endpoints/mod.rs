@@ -1,6 +1,7 @@
+pub mod health;
+pub mod index;
+pub mod login;
+pub mod register;
 mod structure;
 pub mod templates;
-pub mod login;
-pub mod index;
 pub mod users;
-pub mod health;

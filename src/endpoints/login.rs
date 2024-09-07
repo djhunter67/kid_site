@@ -1,58 +1,86 @@
+use actix_session::Session;
 use actix_web::{
-    cookie::Cookie,
     get, post,
+    rt::task,
     web::{Data, Form},
     HttpResponse,
 };
 use askama::Template;
-use mongodb::bson::DateTime;
-use tracing::{debug, error, info, warn};
+use log::{error, info};
+use mongodb::bson::oid::ObjectId;
 
 use crate::{
+    auth::hash::verify_pw,
     endpoints::{
         structure::Login,
-        templates::{ErrorPage, Index, LoginPage, RegisterPage},
+        templates::{ErrorPage, Index, LoginPage},
     },
-    models::mongo::{MongoRepo, User},
+    models::mongo::MongoRepo,
+    types,
 };
 
-use super::structure::Registration;
-
 #[get("/")]
-pub async fn login<'a>(_db: Data<MongoRepo>) -> HttpResponse {
-    info!("Login page requested");
-    // let cookie = cookie.value();
-
-    // let confirm_cookie: Cookie = db.get_cookie(cookie).await;
+pub async fn login() -> HttpResponse {
+    info!("Rendering login page");
 
     let template = LoginPage { title: "Quiz site" };
 
     let body = match template.render() {
         Ok(body) => body,
         Err(err) => {
-            error!("Error rendering template: {err:#?}");
+            error!("Failed to render login page: {err:#?}",);
             return HttpResponse::InternalServerError().finish();
         }
     };
-    info!("Login page template rendered");
+    info!("Login page rendered successfully");
 
     HttpResponse::Ok().content_type("text/html").body(body)
 }
 
+#[allow(clippy::future_not_send)]
 #[post("/login")]
-pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) -> HttpResponse {
-    warn!(
-        "User ID: {}, Password: {}",
-        credential.email, credential.password
-    );
+pub async fn login_user(
+    pool: Data<MongoRepo>,
+    Form(user): Form<Login>,
+    session: Session,
+) -> HttpResponse {
     // Authorization logic
-    let user: User = match db.get_user(&credential.email).await {
-        Ok(user) => user,
+
+    match pool.get_active_user(&user.email).await {
+        Ok(logged_in_user) => match task::spawn_blocking(move || {
+            let logged_in = logged_in_user.password.clone();
+            let user_entered = user.password;
+            verify_pw(logged_in, user_entered.as_bytes().to_vec())
+        })
+        .await
+        .expect("Async blocking failed")
+        .await
+        {
+            Ok(()) => {
+                info!("User logged in successfully.");
+                session.renew();
+                session
+                    .insert(types::USER_ID_KEY, logged_in_user.id)
+                    .expect("`user_id` cannot be inserted into session");
+                session
+                    .insert(types::USER_EMAIL_KEY, logged_in_user.email)
+                    .expect("`user_email` cannot be inserted into session");
+
+                let template = Index { title: "Quiz site" };
+
+                let body = template.render().expect("Index template rendering");
+
+                HttpResponse::Ok().content_type("text/html").body(body)
+            }
+            Err(err) => {
+                error!("User login failed: {err:#?}",);
+                HttpResponse::BadRequest()
+                    .content_type("text/html")
+                    .body("<h1>Unauthorized</h1>")
+            }
+        },
         Err(err) => {
-            error!(
-                "Error getting user: {} -- ERROR: {err:#?}",
-                credential.email
-            );
+            error!("User login failed: {err:#?}");
 
             let template = ErrorPage {
                 title: "Login Error",
@@ -61,192 +89,7 @@ pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) ->
                 error: "login error",
             };
 
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
-                }
-            };
-            return HttpResponse::Unauthorized()
-                .content_type("text/html")
-                .body(body);
-        }
-    };
-
-    info!("User found: {user}");
-
-    // Check if user exists
-    // if !user.username.eq(&credential.user_id) {
-    // return HttpResponse::Unauthorized().body("Invalid username or password");
-    // }
-
-    // Check if password is correct
-    // if user.password != credential.password {
-    // return HttpResponse::Unauthorized().body("Invalid username or password");
-    // }
-
-    let secure_cookie: Cookie = actix_web::cookie::Cookie::build("session", "token")
-        .http_only(true)
-        .secure(true)
-        .finish();
-
-    // Save the cookie to the database for the user
-    match db.save_cookie(user, secure_cookie.clone()).await {
-        Ok(_) => {
-            info!("Cookie saved to database");
-        }
-        Err(err) => {
-            error!("Error saving cookie to database: {err:#?}");
-            return HttpResponse::InternalServerError().finish();
-        }
-    }
-
-    let template = Index { title: "AJ Quiz" };
-    let body = match template.render() {
-        Ok(body) => body,
-        Err(err) => {
-            error!("Error rendering template: {err:#?}");
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
-
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .cookie(secure_cookie)
-        .append_header(("Authorization", "Bearer token"))
-        .body(body)
-}
-
-#[get("/registration")]
-pub async fn registration() -> HttpResponse {
-    let template = RegisterPage {
-        title: "Registration",
-    };
-
-    let body = match template.render() {
-        Ok(body) => body,
-        Err(err) => {
-            error!("Error rendering template: {err:#?}");
-            let template = ErrorPage {
-                title: "Login Error",
-                code: 500,
-                message: "Invalid username or password",
-                error: &err.to_string(),
-            };
-
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
-                }
-            };
-
-            return HttpResponse::InternalServerError()
-                .content_type("text/html")
-                .body(body);
-        }
-    };
-
-    HttpResponse::Ok().content_type("text/html").body(body)
-}
-
-#[post("/register")]
-pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>) -> HttpResponse {
-    // Error case
-    if (credential.password.is_empty() || credential.password_confirm.is_empty())
-        || (credential.email.is_empty())
-        || (credential.password != credential.password_confirm)
-    {
-        let template = ErrorPage {
-            title: "Registration Error",
-            code: 500,
-            message: "Registration Error",
-            error: "Passwords do not match or email is empty",
-        };
-
-        let body = match template.render() {
-            Ok(body) => body,
-            Err(err) => {
-                error!("Error rendering template: {err:#?}");
-                return HttpResponse::InternalServerError().finish();
-            }
-        };
-
-        return HttpResponse::InternalServerError()
-            .content_type("text/html")
-            .body(body);
-    }
-
-    // TODO!: remove logging passwords in plain text
-    warn!(
-        "User ID: {}, Password: {}, Password Confirm: {}",
-        credential.email, credential.password, credential.password_confirm
-    );
-    debug!(
-        "Password Match: {}",
-        credential.password == credential.password_confirm
-    );
-
-    if credential.password != credential.password_confirm {
-        let template = ErrorPage {
-            title: "Registration Error",
-            code: 500,
-            message: "Passwords do not match",
-            error: "Passwords do not match",
-        };
-
-        let body = match template.render() {
-            Ok(body) => body,
-            Err(err) => {
-                error!("Error rendering template: {err:#?}");
-                return HttpResponse::InternalServerError().finish();
-            }
-        };
-        // User Error
-        return HttpResponse::BadRequest()
-            .content_type("text/html")
-            .body(body);
-    }
-
-    let user = User::new(
-        String::new(),
-        DateTime::now(),
-        credential.password.clone(),
-        credential.email.clone(),
-    );
-
-    match db.create_user(user).await {
-        Ok(_) => {
-            let template = Index { title: "AJ Quiz" };
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
-                }
-            };
-
-            HttpResponse::Ok().content_type("text/html").body(body)
-        }
-        Err(err) => {
-            error!("Error creating user: {err:#?}");
-            let template = ErrorPage {
-                title: "Registration Error",
-                code: 500,
-                message: "Error creating user",
-                error: &err.to_string(),
-            };
-
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
-                }
-            };
-
+            let body = template.render().expect("Login Error template rendering");
             HttpResponse::InternalServerError()
                 .content_type("text/html")
                 .body(body)
@@ -255,34 +98,29 @@ pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>)
 }
 
 #[post("/logout")]
-pub async fn logout(db: Data<MongoRepo>) -> HttpResponse {
-    let secure_cookie: Cookie = actix_web::cookie::Cookie::build("session", "token")
-        .http_only(true)
-        .secure(true)
-        .finish();
-
-    match db.delete_cookie(secure_cookie.clone()).await {
+pub async fn logout(session: Session) -> HttpResponse {
+    info!("Logout endpoint");
+    match session_user_id(&session).await {
         Ok(_) => {
-            info!("Cookie deleted from database");
+            info!("User retreived from db.");
+            session.purge();
+            HttpResponse::Ok()
+                .content_type("text/html")
+                .body("<h1>User logged out successfully</h1>")
         }
         Err(err) => {
-            error!("Error deleting cookie from database: {err:#?}");
-            return HttpResponse::InternalServerError().finish();
+            error!("Failed to get user from session: {err:#?}");
+            HttpResponse::BadRequest()
+                .content_type("text/html")
+                .body("<h1>We currently have some issues. Kindly try again and ensure you are logged in.</h1>")
         }
     }
+}
 
-    let template = LoginPage { title: "Quiz site" };
-
-    let body = match template.render() {
-        Ok(body) => body,
-        Err(err) => {
-            error!("Error rendering template: {err:#?}");
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
-
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .cookie(secure_cookie)
-        .body(body)
+async fn session_user_id(session: &Session) -> Result<ObjectId, String> {
+    info!("Retrieving user ID from session");
+    match session.get(types::USER_ID_KEY) {
+        Ok(user_id) => user_id.map_or_else(|| Err("You are not authenticated".to_string()), Ok),
+        Err(err) => Err(err.to_string()),
+    }
 }

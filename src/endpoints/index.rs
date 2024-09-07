@@ -1,13 +1,15 @@
 use actix_web::{get, HttpResponse};
 use askama::Template;
-use tracing::error;
+use log::{debug, error, info};
 
 use crate::endpoints::templates::Index;
 
 #[get("/main")]
 pub async fn index() -> HttpResponse {
+    info!("Rendering the index page");
     let template = Index { title: "AJ Quiz" };
 
+    debug!("rendering the main page");
     let body = match template.render() {
         Ok(body) => body,
         Err(err) => {

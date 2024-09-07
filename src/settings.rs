@@ -1,3 +1,6 @@
+use std::env;
+
+use log::{debug, info};
 use mongodb::options::ClientOptions;
 use serde::Deserialize;
 
@@ -8,6 +11,23 @@ pub struct Settings {
     pub debug: bool,
     pub mongo: Mongo,
     pub redis: Redis,
+    pub secret: Secret,
+    pub email: Email,
+    pub frontend_url: String,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct Secret {
+    pub secret_key: String,
+    pub token_expiration: i64,
+    pub hmac_secret: String,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct Email {
+    pub host: String,
+    pub host_user: String,
+    pub host_user_password: String,
 }
 
 /// Redis setting for the entire application
@@ -54,6 +74,7 @@ impl Mongo {
     /// # Notes
     ///   - mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.0
     pub async fn mongo_options(&self) -> ClientOptions {
+        info!("Building the MongoDB connection options");
         let login_config = if self.require_auth {
             format!(
                 "mongodb://{}:{}@{}:{}/{}?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.0",
@@ -123,14 +144,22 @@ impl TryFrom<String> for Environment {
 /// # Example
 ///   - ``APP__APPLICATION_PORT=5001`` for "port" to be set as "5001"
 pub fn get() -> Result<Settings, config::ConfigError> {
+    info!("Getting the system config settings");
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
     let setting_directory = base_path.join("settings");
 
-    let environment: Environment = std::env::var("APP_ENVIRONMENT")
+    let environment: Environment = match env::var("APP_ENVIRONMENT")
         .unwrap_or_else(|_| "development".into())
         .try_into()
-        .expect("Failed to parse APP_ENVIRONMENT.");
+    {
+        Ok(env) => env,
+        Err(err) => return Err(config::ConfigError::Message(err)),
+    };
     let environment_filename = format!("{}.yaml", environment.as_str());
+    debug!(
+        "Building the settings for the {} environment",
+        environment.as_str()
+    );
     let settings = config::Config::builder()
         .add_source(config::File::from(setting_directory.join("base.yaml")))
         .add_source(config::File::from(
