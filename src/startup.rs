@@ -15,7 +15,9 @@ use crate::{
         index::index,
         login::{login, login_user},
         register::{register, registration},
-        templates::{favicon, htmx, response_targets, source_map, stylesheet},
+        templates::{
+            english_image, favicon, htmx, response_targets, science_image, source_map, stylesheet,
+        },
         users::{create, delete_user, get_user, get_users, update_user},
     },
     settings::{self, Settings},
@@ -147,6 +149,8 @@ async fn run(
             .service(source_map)
             .service(htmx)
             .service(response_targets)
+            .service(english_image)
+            .service(science_image)
             .service(login)
             .service(index)
             .service(login_user)
