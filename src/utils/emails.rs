@@ -5,26 +5,17 @@ use lettre::{
     transport::smtp::authentication::Credentials,
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
+use log::{debug, error, info};
 use mongodb::bson::oid::ObjectId;
 
 use crate::{auth::tokens::issue_confirmation_token, endpoints::templates::EmailPage, settings};
 
-#[tracing::instrument(
-    name = "Generic email sending function.",
-    skip(
-	recipient_email,
-	recipient_first_name,
-	recipient_last_name,
-	subject,
-	html_content,
-	text_content,
-    ),
-    fields(
-	recipient_email = %recipient_email,
-	recipient_first_name = %recipient_first_name,
-	recipient_last_name = %recipient_last_name,
-    )
-)]
+/// # Results
+///   - Ok(()) if the email was sent successfully.
+/// # Errors
+///   - Err(String) if the email could not be sent.
+/// # Panics
+///   - If the settings could not be retrieved.
 pub async fn send_email(
     sender_email: Option<String>,
     recipient_email: String,
@@ -34,6 +25,7 @@ pub async fn send_email(
     html_content: impl Into<String> + Send + Sync,
     text_content: impl Into<String> + Send + Sync,
 ) -> Result<(), String> {
+    info!("Send email function called.");
     let settings = settings::get().expect("Could not get settings.");
 
     let email = Message::builder()
@@ -85,26 +77,22 @@ pub async fn send_email(
     // Send the email
     match mailer.send(email).await {
         Ok(_) => {
-            tracing::event!(target: "email", tracing::Level::INFO, "Email SUCCESSFULLY sent!.");
+            info!("Email SUCCESSFULLY sent!.");
             Ok(())
         }
         Err(err) => {
-            tracing::event!(target: "email", tracing::Level::ERROR, "Email FAILED to send: {err}.");
+            error!("Email FAILED to send: {err}.");
             Err(format!("Could not send email: {err:?}"))
         }
     }
 }
 
-#[tracing::instrument(
-    name = "Generic email sending function.",
-    skip(redis_connection),
-    fields(
-	recipient_user_id = %user_id,
-	recipient_email = %recipient_email,
-	recipient_first_name = %recipient_first_name,
-	recipient_last_name = %recipient_last_name,
-    )
-)]
+/// # Results
+///   - Ok(()) if the multi-part email was sent successfully.
+/// # Errors
+///   - Err(String) if the email could not be sent.
+/// # Panics
+///   - If the settings could not be retrieved.
 pub async fn send_multipart_email(
     subject: String,
     user_id: ObjectId,
@@ -114,6 +102,7 @@ pub async fn send_multipart_email(
     template_name: &str,
     redis_connection: &mut aio::MultiplexedConnection,
 ) -> Result<(), String> {
+    info!("Send multipart email function called.");
     let settings = settings::get().expect("Could not get settings.");
 
     let title = subject.clone();
@@ -121,7 +110,7 @@ pub async fn send_multipart_email(
     let issued_token = match issue_confirmation_token(user_id, redis_connection, None).await {
         Ok(token) => token,
         Err(err) => {
-            tracing::event!(target: "email", tracing::Level::ERROR, "Could not issue confirmation token: {err}.");
+            error!("Could not issue confirmation token: {err}.");
             return Err(format!("Could not issue confirmation token: {err:?}"));
         }
     };
@@ -138,6 +127,7 @@ pub async fn send_multipart_email(
     };
 
     let confirmation_link = {
+	debug!("Creating email confirmation link from multi-part template.");
         if template_name == "password_reset_email.html" {
             format!("{web_address}/users/password/confirm/change_password?token={issued_token}")
         } else {

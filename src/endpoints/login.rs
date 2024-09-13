@@ -1,26 +1,31 @@
+use std::hash::Hash;
+
 use actix_session::Session;
 use actix_web::{
-    get, post,
+    get,
+    http::StatusCode,
+    post,
     rt::task,
     web::{Data, Form},
     HttpResponse,
 };
 use askama::Template;
-use log::{error, info};
-use mongodb::bson::oid::ObjectId;
+use log::{debug, error, info, warn};
+use mongodb::{bson::oid::ObjectId, Database};
 
 use crate::{
     auth::hash::verify_pw,
     endpoints::{
+        health::render_error,
         structure::Login,
-        templates::{ErrorPage, Index, LoginPage},
+        templates::{Index, LoginPage},
     },
-    models::mongo::MongoRepo,
+    models::mongo::{MongoRepo, User},
     types,
 };
 
 #[get("/")]
-pub async fn login() -> HttpResponse {
+pub async fn login(_db: Data<Database>) -> HttpResponse {
     info!("Rendering login page");
 
     let template = LoginPage { title: "Quiz site" };
@@ -40,31 +45,54 @@ pub async fn login() -> HttpResponse {
 #[allow(clippy::future_not_send)]
 #[post("/login")]
 pub async fn login_user(
-    pool: Data<MongoRepo>,
+    pool: Data<Database>,
     Form(user): Form<Login>,
     session: Session,
 ) -> HttpResponse {
+    info!("Login endpoint");
     // Authorization logic
 
-    match pool.get_active_user(&user.email).await {
-        Ok(logged_in_user) => match task::spawn_blocking(move || {
-            let logged_in = logged_in_user.password.clone();
-            let user_entered = user.password;
-            verify_pw(logged_in, user_entered.as_bytes().to_vec())
+    let tasker = |user_to_act_on: User| {
+        debug!("Creating spawn_blocking task to verify password.");
+        task::spawn_blocking(move || {
+            let logged_in = user_to_act_on.password;
+            let user_entered = user.password.as_bytes().to_vec();
+            verify_pw(logged_in, user_entered)
         })
-        .await
-        .expect("Async blocking failed")
-        .await
+    };
+
+    let pool = MongoRepo::new(&pool.as_ref().to_owned());
+
+    match pool.get_active_user(&user.email).await {
+        Ok(logged_in_user) => match tasker(logged_in_user.clone())
+            .await
+            .expect("Async blocking failed")
+            .await
         {
             Ok(()) => {
                 info!("User logged in successfully.");
                 session.renew();
-                session
-                    .insert(types::USER_ID_KEY, logged_in_user.id)
-                    .expect("`user_id` cannot be inserted into session");
-                session
-                    .insert(types::USER_EMAIL_KEY, logged_in_user.email)
-                    .expect("`user_email` cannot be inserted into session");
+                // match session.insert(types::USER_ID_KEY, logged_in_user.id) {
+                //     Ok(()) => info!("`user_id` inserted into session"),
+                //     Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
+                // }
+                // match session.insert(types::USER_EMAIL_KEY, logged_in_user.email) {
+                //     Ok(()) => info!("`user_email` inserted into session"),
+                //     Err(err) => error!("`user_email` cannot be inserted into session: {err:#?}"),
+                // }
+
+                match session.insert(
+                    logged_in_user.id.expect("failed to get creds").to_string(),
+                    logged_in_user.id,
+                ) {
+                    Ok(()) => info!("`user_id` inserted into session"),
+                    Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
+                }
+
+                match session.insert(user.email, logged_in_user.email) {
+                    Ok(()) => info!("`user_email` inserted into session"),
+                    Err(err) => error!("`user_email` cannot be inserted into session: {err:#?}"),
+                }
 
                 let template = Index { title: "Quiz site" };
 
@@ -73,34 +101,32 @@ pub async fn login_user(
                 HttpResponse::Ok().content_type("text/html").body(body)
             }
             Err(err) => {
-                error!("User login failed: {err:#?}",);
-                HttpResponse::BadRequest()
-                    .content_type("text/html")
-                    .body("<h1>Unauthorized</h1>")
+                error!("Basic User login failed: {err:#?}",);
+                render_error(
+                    StatusCode::UNAUTHORIZED,
+                    "Invalid email or password",
+                    Some("login error"),
+                )
             }
         },
         Err(err) => {
+            warn!("PW verification failed");
             error!("User login failed: {err:#?}");
 
-            let template = ErrorPage {
-                title: "Login Error",
-                code: 500,
-                message: "Invalid email or password",
-                error: "login error",
-            };
-
-            let body = template.render().expect("Login Error template rendering");
-            HttpResponse::InternalServerError()
-                .content_type("text/html")
-                .body(body)
+            render_error(
+                StatusCode::UNAUTHORIZED,
+                "Invalid email or password",
+                Some("login error"),
+            )
         }
     }
 }
 
+#[allow(clippy::future_not_send)]
 #[post("/logout")]
 pub async fn logout(session: Session) -> HttpResponse {
     info!("Logout endpoint");
-    match session_user_id(&session).await {
+    match session_user_id(&session) {
         Ok(_) => {
             info!("User retreived from db.");
             session.purge();
@@ -117,7 +143,7 @@ pub async fn logout(session: Session) -> HttpResponse {
     }
 }
 
-async fn session_user_id(session: &Session) -> Result<ObjectId, String> {
+fn session_user_id(session: &Session) -> Result<ObjectId, String> {
     info!("Retrieving user ID from session");
     match session.get(types::USER_ID_KEY) {
         Ok(user_id) => user_id.map_or_else(|| Err("You are not authenticated".to_string()), Ok),

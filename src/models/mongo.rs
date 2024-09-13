@@ -1,15 +1,14 @@
 use actix_web::cookie::Cookie;
-use log::{debug, info};
-use lop::error;
+use log::{debug, error, info, warn};
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId, DateTime},
     results::{DeleteResult, InsertOneResult, UpdateResult},
-    Collection,
+    Collection, Database,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 
-use crate::auth::hash::hash_pw;
+use crate::{auth::hash::pw, endpoints::register::CreateNewUser};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct User {
@@ -41,7 +40,22 @@ impl User {
             thumbnail: None,
             sign_up_date: Some(sign_up_date),
             email,
-            password: hash_pw(password.as_bytes()).await,
+            password: pw(password.as_bytes()).await,
+        }
+    }
+}
+
+impl From<CreateNewUser> for User {
+    fn from(new_user: CreateNewUser) -> Self {
+        Self {
+            id: None,
+            first_name: new_user.first_name,
+            last_name: new_user.last_name,
+            is_active: Some(false),
+            thumbnail: None,
+            sign_up_date: Some(DateTime::now()),
+            email: new_user.email,
+            password: new_user.password,
         }
     }
 }
@@ -63,7 +77,9 @@ pub struct MongoRepo {
 
 impl MongoRepo {
     #[must_use]
-    pub const fn new(collection: Collection<User>) -> Self {
+    pub fn new(collection: &Database) -> Self {
+        let collection = collection.collection("users");
+
         Self { collection }
     }
 
@@ -73,7 +89,7 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to insert into the collection
     /// # Panics
     ///   - If the document fails to insert into the collection
-    pub async fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
+    pub async fn create_user(&self, new_user: CreateNewUser) -> Result<InsertOneResult, Error> {
         let new_doc = User {
             id: None,
             first_name: new_user.first_name,
@@ -82,7 +98,7 @@ impl MongoRepo {
             is_active: Some(false),
             sign_up_date: Some(DateTime::now()),
             email: new_user.email,
-            password: hash_pw(new_user.password.as_bytes()).await,
+            password: pw(new_user.password.as_bytes()).await,
         };
 
         let user = self
@@ -129,30 +145,32 @@ impl MongoRepo {
             }
         };
 
-        Ok(match user {
-            Some(user) => user,
-            None => {
-                error!("Failed to find user");
-                return Err(Error::DeserializationError {
-                    message: "Failed to find user".to_string(),
-                });
-            }
+        Ok(if let Some(user) = user {
+            user
+        } else {
+            error!("Failed to find user");
+            return Err(Error::DeserializationError {
+                message: "Failed to find user".to_string(),
+            });
         })
     }
 
     /// # Results
-    ///   - Returns a `User` if the document, filtered on email,  has is_active == true in the collection
+    ///   - Returns a `User` if the document, filtered on email,  has ``is_active`` == true in the collection
     /// # Errors
     ///   - Returns an `Error` if the document fails to find in the collection
     /// # Panics
     ///   - If the document fails to find in the collection
     pub async fn get_active_user(&self, email: &str) -> Result<User, Error> {
         info!("Get active user endpoint hit");
-        let filter = doc! { "email": email, "is_active": true };
+        let filter = doc! { "email": email, "is_active": false };
+        // let filter = doc! {};
+
+        warn!("Filter: {:#?}", filter);
 
         let user = match self.collection.find_one(filter).await {
             Ok(user) => {
-                debug!("User found");
+                debug!("Finder filter returned");
                 user
             }
             Err(err) => {
@@ -163,14 +181,13 @@ impl MongoRepo {
             }
         };
 
-        Ok(match user {
-            Some(user) => user,
-            None => {
-                error!("Failed to find user");
-                return Err(Error::DeserializationError {
-                    message: "Failed to find user".to_string(),
-                });
-            }
+        Ok(if let Some(user) = user {
+            user
+        } else {
+            error!("Failed to find active user: {user:#?}");
+            return Err(Error::DeserializationError {
+                message: "Failed to find user".to_string(),
+            });
         })
     }
 
@@ -195,7 +212,7 @@ impl MongoRepo {
         "thumbnail": new_user.thumbnail,
         "sign_up_date": new_user.sign_up_date,
         "is_active": new_user.is_active,
-        "password": hash_pw(new_user.password.as_bytes()).await,
+        "password": pw(new_user.password.as_bytes()).await,
             }
         };
 
@@ -368,14 +385,13 @@ impl MongoRepo {
             }
         };
 
-        Ok(match user {
-            Some(user) => user,
-            None => {
-                error!("Failed to find user");
-                return Err(Error::DeserializationError {
-                    message: "Failed to find user".to_string(),
-                });
-            }
+        Ok(if let Some(user) = user {
+            user
+        } else {
+            error!("Failed to find user");
+            return Err(Error::DeserializationError {
+                message: "Failed to find user".to_string(),
+            });
         })
     }
 

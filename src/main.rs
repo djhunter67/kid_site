@@ -1,6 +1,7 @@
-use aj_studying::{settings, startup::Application, telemetry};
-use log::{debug, error, info};
-use std::io;
+use aj_studying::{settings, startup::Application};
+use log::{debug, error, info, warn, LevelFilter};
+use simplelog::{ColorChoice, CombinedLogger, Config, TermLogger, TerminalMode, WriteLogger};
+use std::{fs::File, io, process::exit};
 
 #[actix_web::main]
 async fn main() -> io::Result<()> {

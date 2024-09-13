@@ -3,7 +3,6 @@ use std::net;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::{
     http::KeepAlive,
-    middleware,
     web::{scope, Data},
     App, HttpServer,
 };
@@ -70,7 +69,7 @@ impl Application {
     /// # Panics
     ///  - If the application could not be started
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        info!("Graceful shutdown");
+        info!("Running until stopped");
         self.server.await
     }
 }
@@ -140,7 +139,7 @@ async fn run(
                 warn!("Production mode");
                 SessionMiddleware::new(CookieSessionStore::default(), secret_key.clone())
             })
-            .wrap(middleware::Logger::default())
+            // .wrap(middleware::Logger::default())
             .app_data(db_data.clone())
             .app_data(redis_pool.clone())
             .service(favicon)
@@ -165,8 +164,8 @@ async fn run(
     })
     .keep_alive(KeepAlive::Os) // Keep the connection alive; OS handled
     .disable_signals() // Disable the signals to allow the OS to handle the signals
+    .workers(1)
     .shutdown_timeout(3)
-    .workers(2)
     .listen(listener)?
     .run();
 

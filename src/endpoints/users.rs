@@ -1,17 +1,22 @@
 use actix_web::{
-    delete, get, post, put,
+    delete, get,
+    http::StatusCode,
+    post, put,
     web::{Data, Json, Path},
     HttpResponse,
 };
 use log::{debug, error, info, warn};
-use mongodb::bson::oid::ObjectId;
+use mongodb::{bson::oid::ObjectId, Database};
 
-use crate::models::mongo::{MongoRepo, User};
+use crate::{
+    endpoints::{health::render_error, register::CreateNewUser},
+    models::mongo::{MongoRepo, User},
+};
 
 #[post("/user")]
-pub async fn create(client: Data<mongodb::Database>, new_user: Json<User>) -> HttpResponse {
+pub async fn create(client: Data<Database>, new_user: Json<CreateNewUser>) -> HttpResponse {
     info!("Creating user API endpoint");
-    let db = MongoRepo::new(client.collection("users"));
+    let db = MongoRepo::new(&client.as_ref().to_owned());
     let data = new_user.into_inner();
     debug!("Creating user: {:#?}", data);
 
@@ -27,9 +32,9 @@ pub async fn create(client: Data<mongodb::Database>, new_user: Json<User>) -> Ht
 }
 
 #[get("/user/{id}")]
-pub async fn get_user(client: Data<mongodb::Database>, path: Path<User>) -> HttpResponse {
+pub async fn get_user(client: Data<Database>, path: Path<User>) -> HttpResponse {
     info!("Getting user API endpoint");
-    let db = MongoRepo::new(client.collection("users"));
+    let db = MongoRepo::new(&client.as_ref().to_owned());
 
     let user_details = db.get_user(Some(path.id.expect("No ID found")), None).await;
 
@@ -46,12 +51,12 @@ pub async fn get_user(client: Data<mongodb::Database>, path: Path<User>) -> Http
 
 #[put("/user/{id}")]
 pub async fn update_user(
-    client: Data<mongodb::Database>,
+    client: Data<Database>,
     path: Path<String>,
     new_user: Json<User>,
 ) -> HttpResponse {
     info!("Updating user API endpoint");
-    let db = MongoRepo::new(client.collection("users"));
+    let db = MongoRepo::new(&client.as_ref().to_owned());
 
     let user_id = path.into_inner();
 
@@ -100,9 +105,9 @@ pub async fn update_user(
 }
 
 #[delete("/user/{id}")]
-pub async fn delete_user(client: Data<mongodb::Database>, path: Path<String>) -> HttpResponse {
+pub async fn delete_user(client: Data<Database>, path: Path<String>) -> HttpResponse {
     info!("Deleting user API endpoint");
-    let db = MongoRepo::new(client.collection("users"));
+    let db = MongoRepo::new(&client.as_ref().to_owned());
     let user_id = path.into_inner();
 
     if user_id.is_empty() {
@@ -113,29 +118,19 @@ pub async fn delete_user(client: Data<mongodb::Database>, path: Path<String>) ->
     debug!("Deleting user");
     let delete_result = db.delete_user(user_id.clone()).await;
 
-    match delete_result {
-        Ok(delete) => {
-            if delete.deleted_count == 1 {
-                debug!("User deleted successfully");
-                return HttpResponse::Ok().body("User deleted successfully");
-            }
-
-            warn!("User not found");
-            return HttpResponse::NotFound().body("User not found");
-        }
-        Err(err) => {
-            error!("Error deleting user: {err:#?}");
-            HttpResponse::InternalServerError().body(format!("Error deleting user: {err:#?}"))
-        }
-    };
-    error!("User not found");
-    HttpResponse::NotFound().body("User not found")
+    let deleted = delete_result;
+    if deleted.expect("Database error").deleted_count == 1 {
+        debug!("User deleted successfully");
+        return HttpResponse::Ok().body("<h1>User deleted successfully</h1>");
+    }
+    warn!("User not found");
+    render_error(StatusCode::NOT_FOUND, "User not found", None)
 }
 
 #[get("/users")]
-pub async fn get_users(client: Data<mongodb::Database>) -> HttpResponse {
+pub async fn get_users(client: Data<Database>) -> HttpResponse {
     info!("Getting all users API endpoint");
-    let db = MongoRepo::new(client.collection("users"));
+    let db = MongoRepo::new(&client.as_ref().to_owned());
     debug!("Getting all users");
     let users = db.get_all_users().await;
 

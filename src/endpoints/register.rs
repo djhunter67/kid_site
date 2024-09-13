@@ -1,29 +1,35 @@
 use actix_web::{
-    get, post,
+    get,
+    http::StatusCode,
+    post,
     web::{self, Data, Form},
     HttpResponse,
 };
 use askama::Template;
 use deadpool_redis::Pool;
-use log::{debug, error, info};
-use mongodb::bson::oid::ObjectId;
+use log::{debug, error, info, warn};
+use mongodb::{bson::oid::ObjectId, Database};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     auth,
-    endpoints::templates::{ErrorPage, RegisterPage},
-    models::mongo::{MongoRepo, User},
+    endpoints::{
+        health::render_error,
+        templates::{ErrorPage, RegisterPage},
+    },
+    models::mongo::MongoRepo,
     utils::emails::send_multipart_email,
 };
 
 use super::templates::Index;
 
-#[derive(Deserialize, Serialize, Debug)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct CreateNewUser {
-    email: String,
-    password: String,
-    first_name: String,
-    last_name: String,
+    pub email: String,
+    pub password: String,
+    pub password_2: String,
+    pub first_name: String,
+    pub last_name: String,
 }
 
 #[get("/registration")]
@@ -63,11 +69,24 @@ pub async fn registration() -> HttpResponse {
 
 #[post("/register")]
 pub async fn register(
-    pool: Data<MongoRepo>,
-    Form(new_user): Form<User>,
+    pool: Data<Database>,
+    Form(new_user): Form<CreateNewUser>,
     redis_pool: Data<Pool>,
 ) -> HttpResponse {
-    // new_user.password = hash_pw(&new_user.password.as_bytes()).await;
+    info!("register endpoint hit");
+
+    let pool = MongoRepo::new(&pool.as_ref().to_owned());
+
+    // Check if passwords match
+    if new_user.password != new_user.password_2 {
+        warn!("Passwords do not match");
+
+        return render_error(
+            StatusCode::BAD_REQUEST,
+            "Registration Error",
+            Some("Passwords do not match"),
+        );
+    };
 
     let user_id = match pool.create_user(new_user.clone()).await {
         Ok(user_id) => {
@@ -85,20 +104,15 @@ pub async fn register(
         .await
         .map_err(|err| {
             error!("Error getting redis connection: {err}");
-            let error = ErrorPage {
-                title: "Internal Server Error",
-                code: 500,
-                message: "Unable to activate your account at this time. Please try again later.",
-                error: &err.to_string(),
-            };
-
-            HttpResponse::InternalServerError()
-                .content_type("text/html")
-                .body(error.render().expect("Error rendering template"))
+            render_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Registration Error",
+                Some("Unable to send verification email"),
+            )
         })
         .expect("Error getting redis connection");
 
-    send_multipart_email(
+    match send_multipart_email(
         String::from("AJ's study site - Let's get you verified"),
         user_id.as_object_id().expect("Error getting object id"),
         new_user.email.clone(),
@@ -108,7 +122,19 @@ pub async fn register(
         &mut redis_conn,
     )
     .await
-    .expect("Error sending email");
+    {
+        Ok(()) => {
+            info!("Email sent successfully");
+        }
+        Err(err) => {
+            error!("Error sending email: {err}");
+            return render_error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Registration Error",
+                Some("Unable to send verification email"),
+            );
+        }
+    }
 
     HttpResponse::Ok().content_type("text/html").body(
         "<h1>Registration successful</h1> <p>Please check your email to verify your account</p>",

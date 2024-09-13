@@ -1,6 +1,6 @@
+use log::debug;
 use rand::{Rng, SeedableRng};
 use sha2::{Digest, Sha256};
-use tracing::debug;
 
 /// Generate a random salt for password hashing
 fn salt_pw(seed: u64) -> String {
@@ -17,11 +17,12 @@ fn salt_pw(seed: u64) -> String {
             }
         })
         .collect();
-    debug!("Generated salt: {}", salt);
+    debug!("Salting complete");
     salt
 }
 
 /// Generate a password hash
+#[must_use]
 pub fn pw_hasher(password: &str) -> String {
     debug!("Hashing password");
 
