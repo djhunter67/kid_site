@@ -1,5 +1,7 @@
+use std::any::Any;
+
 use deadpool_redis::redis::{aio, AsyncCommands, RedisError};
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 use mongodb::bson::oid::ObjectId;
 use pasetors::{
     claims::{Claims, ClaimsValidationRules},
@@ -16,7 +18,7 @@ use crate::{
     types::tokens::ConfirmationToken,
 };
 
-const SESSION_KEY_PREFIX: &str = "valid_session_key_for_{}";
+const SESSION_KEY_PREFIX: &str = "aj_studying_{}";
 
 /// # Result
 ///   - Ok(String): A token has been issued successfully
@@ -129,7 +131,20 @@ pub async fn issue_confirmation_token(
         }
     }
 
-    let sk = match SymmetricKey::<V4>::from(settings.secret.secret_key.as_bytes()) {
+    let secret_key = {
+        if settings.secret.secret_key.as_bytes().len() > 32 {
+            warn!(
+                "The secret key is longer than 32 bytes: {}. It will be truncated to 32 bytes",
+                settings.secret.secret_key.as_bytes().len()
+            );
+            &settings.secret.secret_key.as_bytes()[0..32]
+        } else {
+            warn!("The secret key is less than 32 bytes.");
+            settings.secret.secret_key.as_bytes()
+        }
+    };
+
+    let sk = match SymmetricKey::<V4>::from(secret_key) {
         Ok(sk) => sk,
         Err(err) => {
             error!("Cannot create symmetric key: {err:?}");

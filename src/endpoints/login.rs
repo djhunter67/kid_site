@@ -1,5 +1,3 @@
-use std::hash::Hash;
-
 use actix_session::Session;
 use actix_web::{
     get,

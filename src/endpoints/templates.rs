@@ -93,28 +93,4 @@ async fn response_targets() -> Result<NamedFile, actix_web::Error> {
     }
 }
 
-#[get("/english_image")]
-async fn english_image() -> Result<NamedFile, actix_web::Error> {
-    info!("Serving english_image.png");
-    let path: PathBuf = ["static", "imgs", "english.jpg"].iter().collect();
-    match NamedFile::open(path) {
-        Ok(file) => Ok(file),
-        Err(err) => {
-            error!("Error opening file: {err:#?}");
-            Err(actix_web::error::ErrorInternalServerError(err))
-        }
-    }
-}
 
-#[get("/science_image")]
-async fn science_image() -> Result<NamedFile, actix_web::Error> {
-    info!("Serving science_image.png");
-    let path: PathBuf = ["static", "imgs", "science.png"].iter().collect();
-    match NamedFile::open(path) {
-        Ok(file) => Ok(file),
-        Err(err) => {
-            error!("Error opening file: {err:#?}");
-            Err(actix_web::error::ErrorInternalServerError(err))
-        }
-    }
-}

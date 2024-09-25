@@ -127,7 +127,7 @@ pub async fn send_multipart_email(
     };
 
     let confirmation_link = {
-	debug!("Creating email confirmation link from multi-part template.");
+        debug!("Creating email confirmation link from multi-part template.");
         if template_name == "password_reset_email.html" {
             format!("{web_address}/users/password/confirm/change_password?token={issued_token}")
         } else {
@@ -150,15 +150,20 @@ pub async fn send_multipart_email(
 
     let text = format!(r#"Tap the link below to confirm your email address.{confirmation_link}"#);
 
-    actix_web::rt::spawn(send_email(
-        None,
-        recipient_email,
-        recipient_first_name,
-        recipient_last_name,
-        subject,
-        template,
-        text,
-    ));
+    // actix_web::rt::spawn(send_email(
+    //     None,
+    //     recipient_email,
+    //     recipient_first_name,
+    //     recipient_last_name,
+    //     subject,
+    //     template,
+    //     text,
+    // ));
+
+    info!(
+        "None, recipient_email: {}, recipient_first_name: {}, recipient_last_name: {}, subject: {}, template: {}, text: {}",
+         recipient_email, recipient_first_name, recipient_last_name, subject, template, text
+    );
 
     Ok(())
 }

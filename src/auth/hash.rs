@@ -32,18 +32,24 @@ pub async fn pw(password: &[u8]) -> String {
 ///   - ``password_hash::Error`` if the password is incorrect
 /// # Panics
 ///   - If the hash is not parsable
-pub async fn verify_pw(hash: String, password: Vec<u8>) -> Result<(), password_hash::Error> {
+pub async fn verify_pw(logged_in: String, password: Vec<u8>) -> Result<(), password_hash::Error> {
     warn!("Hashing pw");
 
     let salt = SaltString::generate(OsRng);
 
     let argon2 = Argon2::default();
 
-    let pw_hash = argon2
-                .hash_password_into(password.as_slice(), salt.as_ref().as_bytes(), &mut [0u8; 32]);
+    let mut buf = [0u8; 32];
 
-    
-    let parsed_hash = match PasswordHash::new(hash.as_str()) {
+    match argon2.hash_password_into(password.as_slice(), salt.as_ref().as_bytes(), &mut buf) {
+        Ok(()) => (),
+        Err(err) => {
+            error!("Failed to hash pw: {err}");
+            return Err(err.into());
+        }
+    }
+
+    let parsed_hash = match PasswordHash::new(logged_in.as_str()) {
         Ok(hash) => hash,
         Err(err) => {
             error!("Failed to hash pw: {err}");
@@ -52,7 +58,7 @@ pub async fn verify_pw(hash: String, password: Vec<u8>) -> Result<(), password_h
     };
 
     Argon2::default()
-        .verify_password(&password, &parsed_hash)
+        .verify_password(&buf, &parsed_hash)
         .inspect_err(|err| {
             error!("Failed to verify password: {:?}", err);
         })

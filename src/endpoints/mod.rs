@@ -5,3 +5,4 @@ pub mod register;
 mod structure;
 pub mod templates;
 pub mod users;
+pub mod images;
