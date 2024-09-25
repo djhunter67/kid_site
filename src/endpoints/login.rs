@@ -50,10 +50,10 @@ pub async fn login_user(
     info!("Login endpoint");
     // Authorization logic
 
-    let tasker = |user_to_act_on: User| {
+    let tasker = |registered_user: User| {
         debug!("Creating spawn_blocking task to verify password.");
         task::spawn_blocking(move || {
-            let logged_in = user_to_act_on.password;
+            let logged_in = registered_user.password;
             let user_entered = user.password.as_bytes().to_vec();
             verify_pw(logged_in, user_entered)
         })
