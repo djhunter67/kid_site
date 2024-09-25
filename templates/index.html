@@ -6,24 +6,46 @@
 {% block individual_page_contents %}
 <section id="card_container">
   <div id="card_container__english" class="education_card">
-    <h1>ENGLISH</h1>
-    <button
+    <h2>ENGLISH</h2>    
+    <a
       id="card_container__english__button"
       hx-get="/education/english"
       hx-swap="outerHTML"
       hx-target="#template_pages"
-      >STUDY ENGLISH</button>
+      >
+      <img src="/english_image" alt="English image"/>
+    </a>
   </div>
   <div id="card_container__science" class="education_card">
-    <h1>SCIENCE</h1>
-    <button
+    <h2>SCIENCE</h2>
+    <a
       id="card_container__science__button"
       hx-get="/education/science"
       hx-swap="outerHTML"
-      hx-target="#template_pages"
-      >STUDY SCIENCE</button>
+      hx-target="#template_pages">
+      <img src="/science_image" alt="Science image"/>
+    </a>      
   </div>
-
+  <div id="card_contain__math" class="education_card">
+    <h2>MATH</h2>
+    <a
+      id="card_container__math__button"
+      hx-get="/education/math"
+      hx-swap="outerHTML"
+      hx-target="#template_pages">
+      <img src="/math_image" alt="Math image"/>
+    </a>
+  </div>
+  <div id="card_container__history" class="education_card">
+    <h2>SOCIAL STUDIES</h2>
+    <a
+      id="card_container__history__button"
+      hx-get="/education/social_studies"
+      hx-swap="outerHTML"
+      hx-target="#template_pages">
+      <img src="/social_studies_image" alt="Social Studies image"/>
+    </a>
+  </div>
 </section>
 
 {% call super() %} {% endblock %}

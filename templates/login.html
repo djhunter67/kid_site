@@ -1,23 +1,24 @@
 {% extends "base.html" %}
 {% block title %} {{ title }} {% endblock %}
 {% block head %}
+
 {% endblock %}
 
 {% block individual_page_contents %}
 <section class="login">
-  <div class="login__container">
+  <div class="login__container" >
     <h2>Log in</h2>
-    <form>
+    <form hx-ext="response-targets">
       <input type="text" name="email" placeholder="Email" required>
       <input type="password" name="password" placeholder="Password" required>
       <button
 	type="submit"
 	hx-post="/login"
 	hx-target="#template_pages"
+	hx-target-error="#error_block"
 	>Log in</button>
     </form>
     <p>Don't have an account? <a href="/registration">Register</a></p>
   </div>
 </section>
-
 {% call super() %} {% endblock %}

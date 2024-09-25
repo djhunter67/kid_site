@@ -2,25 +2,51 @@ $inner_background: hsl(0, 0%, 100%);
 $card_background: hsl(206, 30%, 40%);
 
 @import 'login';
-// @import 'errors';
+@import 'errors';
 @import 'main';
+
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
 
 body {
     background-color: coral;
     height: 100dvh;
     width: 100dvw;
-    display: grid;
-    grid-template-rows: 1fr 4fr 1fr;
-    grid-template-columns: 1fr 4fr 1fr;
-    grid-template-areas: 
-	"header-left header header-right"
-	"main-left main main-right"
-	"footer-left footer footer-right";
+    margin-inline: auto;
+    display: flex;
     justify-items: center;
     align-items: center;
-    margin: 0;
-    padding: 0;
 
+    img {
+	max-width: 100%;
+	display: block;
+    }
+
+    #error_block {
+	display: none;
+    }
+
+    #template_pages {
+	grid-area: main;
+	width: 1280px;
+	height: 720px;
+	border-radius: 30px;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	margin: 0 auto;
+	padding: 0 2rem;
+	background-color: $inner_background;
+    }
 }
 
 

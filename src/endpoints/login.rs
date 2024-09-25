@@ -1,203 +1,150 @@
+use actix_session::Session;
 use actix_web::{
-    get, post,
+    get,
+    http::StatusCode,
+    post,
+    rt::task,
     web::{Data, Form},
     HttpResponse,
 };
 use askama::Template;
 use log::{debug, error, info, warn};
-use mongodb::bson::datetime;
+use mongodb::{bson::oid::ObjectId, Database};
 
 use crate::{
+    auth::hash::verify_pw,
     endpoints::{
+        health::render_error,
         structure::Login,
-        templates::{ErrorPage, Index, LoginPage, RegisterPage},
+        templates::{Index, LoginPage},
     },
     models::mongo::{MongoRepo, User},
+    types,
 };
 
-use super::structure::Registration;
-
 #[get("/")]
-pub async fn login() -> HttpResponse {
+pub async fn login(_db: Data<Database>) -> HttpResponse {
+    info!("Rendering login page");
+
     let template = LoginPage { title: "Quiz site" };
 
     let body = match template.render() {
         Ok(body) => body,
         Err(err) => {
-            error!("Error rendering template: {err:#?}");
+            error!("Failed to render login page: {err:#?}",);
             return HttpResponse::InternalServerError().finish();
         }
     };
+    info!("Login page rendered successfully");
 
     HttpResponse::Ok().content_type("text/html").body(body)
 }
 
+#[allow(clippy::future_not_send)]
 #[post("/login")]
-pub async fn submit_login(db: Data<MongoRepo>, Form(credential): Form<Login>) -> HttpResponse {
-    // warn!(
-    //     "User ID: {}, Password: {}",
-    //     credential.email, credential.password
-    // );
+pub async fn login_user(
+    pool: Data<Database>,
+    Form(user): Form<Login>,
+    session: Session,
+) -> HttpResponse {
+    info!("Login endpoint");
     // Authorization logic
-    let user: User = match db.get_user(&credential.email).await {
-        Ok(user) => user,
-        Err(err) => {
-            error!(
-                "Error getting user: {} -- ERROR: {err:#?}",
-                credential.email
-            );
 
-            let template = ErrorPage {
-                title: "Login Error",
-                code: 500,
-                message: "Invalid email or password",
-                error: &err.to_string(),
-            };
+    let tasker = |registered_user: User| {
+        debug!("Creating spawn_blocking task to verify password.");
+        task::spawn_blocking(move || {
+            let logged_in = registered_user.password;
+            let user_entered = user.password.as_bytes().to_vec();
+            verify_pw(logged_in, user_entered)
+        })
+    };
 
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
+    let pool = MongoRepo::new(&pool.as_ref().to_owned());
+
+    match pool.get_active_user(&user.email).await {
+        Ok(logged_in_user) => match tasker(logged_in_user.clone())
+            .await
+            .expect("Async blocking failed")
+            .await
+        {
+            Ok(()) => {
+                info!("User logged in successfully.");
+                session.renew();
+                // match session.insert(types::USER_ID_KEY, logged_in_user.id) {
+                //     Ok(()) => info!("`user_id` inserted into session"),
+                //     Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
+                // }
+                // match session.insert(types::USER_EMAIL_KEY, logged_in_user.email) {
+                //     Ok(()) => info!("`user_email` inserted into session"),
+                //     Err(err) => error!("`user_email` cannot be inserted into session: {err:#?}"),
+                // }
+
+                match session.insert(
+                    logged_in_user.id.expect("failed to get creds").to_string(),
+                    logged_in_user.id,
+                ) {
+                    Ok(()) => info!("`user_id` inserted into session"),
+                    Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
                 }
-            };
-            return HttpResponse::Unauthorized()
-                .content_type("text/html")
-                .body(body);
-        }
-    };
 
-    info!("User found: {user}");
-
-    // Check if user exists
-    // if !user.username.eq(&credential.user_id) {
-    // return HttpResponse::Unauthorized().body("Invalid username or password");
-    // }
-
-    // Check if password is correct
-    // if user.password != credential.password {
-    // return HttpResponse::Unauthorized().body("Invalid username or password");
-    // }
-
-    let template = Index { title: "AJ Quiz" };
-    let body = match template.render() {
-        Ok(body) => body,
-        Err(err) => {
-            error!("Error rendering template: {err:#?}");
-            return HttpResponse::InternalServerError().finish();
-        }
-    };
-
-    HttpResponse::Ok()
-        .content_type("text/html")
-        .append_header(("Authorization", "Bearer token"))
-        .body(body)
-}
-
-#[get("/registration")]
-pub async fn registration() -> HttpResponse {
-    let template = RegisterPage {
-        title: "Registration",
-    };
-
-    let body = match template.render() {
-        Ok(body) => body,
-        Err(err) => {
-            error!("Error rendering template: {err:#?}");
-            let template = ErrorPage {
-                title: "Login Error",
-                code: 500,
-                message: "Invalid username or password",
-                error: &err.to_string(),
-            };
-
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
+                match session.insert(user.email, logged_in_user.email) {
+                    Ok(()) => info!("`user_email` inserted into session"),
+                    Err(err) => error!("`user_email` cannot be inserted into session: {err:#?}"),
                 }
-            };
 
-            return HttpResponse::InternalServerError()
-                .content_type("text/html")
-                .body(body);
-        }
-    };
+                let template = Index { title: "Quiz site" };
 
-    HttpResponse::Ok().content_type("text/html").body(body)
-}
+                let body = template.render().expect("Index template rendering");
 
-#[post("/register")]
-pub async fn register(db: Data<MongoRepo>, Form(credential): Form<Registration>) -> HttpResponse {
-    // warn!(
-    //     "User ID: {}, Password: {}, Password Confirm: {}",
-    //     credential.email, credential.password, credential.password_confirm
-    // );
-
-    // debug!("Password Match: {}", credential.password == credential.password_confirm);
-
-    if credential.password != credential.password_confirm {
-        let template = ErrorPage {
-            title: "Registration Error",
-            code: 500,
-            message: "Passwords do not match",
-            error: "Passwords do not match",
-        };
-
-        let body = match template.render() {
-            Ok(body) => body,
-            Err(err) => {
-                error!("Error rendering template: {err:#?}");
-                return HttpResponse::InternalServerError().finish();
+                HttpResponse::Ok().content_type("text/html").body(body)
             }
-        };
+            Err(err) => {
+                error!("Basic User login failed: {err:#?}",);
+                render_error(
+                    StatusCode::UNAUTHORIZED,
+                    "Invalid email or password",
+                    Some("login error"),
+                )
+            }
+        },
+        Err(err) => {
+            warn!("PW verification failed");
+            error!("User login failed: {err:#?}");
 
-        return HttpResponse::InternalServerError()
-            .content_type("text/html")
-            .body(body);
+            render_error(
+                StatusCode::UNAUTHORIZED,
+                "Invalid email or password",
+                Some("login error"),
+            )
+        }
     }
+}
 
-    let user = User::new(
-        String::new(),
-        datetime::DateTime::now(),
-        credential.password.clone(),
-        credential.email.clone(),
-    );
-
-    match db.create_user(user).await {
+#[allow(clippy::future_not_send)]
+#[post("/logout")]
+pub async fn logout(session: Session) -> HttpResponse {
+    info!("Logout endpoint");
+    match session_user_id(&session) {
         Ok(_) => {
-            let template = Index { title: "AJ Quiz" };
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
-                }
-            };
-
-            HttpResponse::Ok().content_type("text/html").body(body)
+            info!("User retreived from db.");
+            session.purge();
+            HttpResponse::Ok()
+                .content_type("text/html")
+                .body("<h1>User logged out successfully</h1>")
         }
         Err(err) => {
-            error!("Error creating user: {err:#?}");
-            let template = ErrorPage {
-                title: "Registration Error",
-                code: 500,
-                message: "Error creating user",
-                error: &err.to_string(),
-            };
-
-            let body = match template.render() {
-                Ok(body) => body,
-                Err(err) => {
-                    error!("Error rendering template: {err:#?}");
-                    return HttpResponse::InternalServerError().finish();
-                }
-            };
-
-            HttpResponse::InternalServerError()
+            error!("Failed to get user from session: {err:#?}");
+            HttpResponse::BadRequest()
                 .content_type("text/html")
-                .body(body)
+                .body("<h1>We currently have some issues. Kindly try again and ensure you are logged in.</h1>")
         }
+    }
+}
+
+fn session_user_id(session: &Session) -> Result<ObjectId, String> {
+    info!("Retrieving user ID from session");
+    match session.get(types::USER_ID_KEY) {
+        Ok(user_id) => user_id.map_or_else(|| Err("You are not authenticated".to_string()), Ok),
+        Err(err) => Err(err.to_string()),
     }
 }

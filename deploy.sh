@@ -1,11 +1,13 @@
 #/usr/bin/env bash
 
 readonly DESTINATION=$1
-readonly DEST_PATH="/home/djhunter67/app"
+readonly DEST_PATH="/home/ripley/app"
+readonly TARGET_ARCH=aarch64-unknown-linux-gnu
+readonly SOURCE_PATH=target/${TARGET_ARCH}/release/aj_studying
+
 
 # Look in the target/release/ directory for the binary and that is the name of the application
-APP_NAME=$(ls target/release/ | head -n 1)
-
+APP_NAME=$(ls target/$TARGET_ARCH/release/ | head -n 1)
 
 if [ -z "$DESTINATION" ]; then
     echo "Destination is required"
@@ -17,10 +19,13 @@ fi
 # ssh -t $DESTINATION "mkdir -p ${DEST_PATH}" #2>&1 > /dev/null
 
 # Build the Rust application
-cargo build --release #--quiet #2>&1 > /dev/null
+echo -e "\e[33mBuilding the Rust application for Release\e[0m"
+# cargo build --release --quiet # 2>&1 > /dev/null
+cross build --release --target=aarch64-unknown-linux-gnu
 
+echo -e "\e[33mCopying the binary to the server\e[0m"
 # Copy the binary to the server
-rsync -Pauvht --stats {.env,static,target/release/$APP_NAME} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
+rsync -Pauvht --stats {.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
 
 # Check if the last command was successful
 if [ $? -eq 0 ]; then
@@ -58,16 +63,16 @@ After=network.target
 
 [Service]
 Type=simple
-User=djhunter67
-WorkingDirectory=/home/djhunter67/app
-ExecStart=/home/djhunter67/app/aj_studying
+User=ripley
+WorkingDirectory=/home/ripley/app
+ExecStart=/home/ripley/app/aj_studying
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    SERVICE_FILE="$DEST_PATH/$APP_NAME.service"
+    SERVICE_FILE="$DEST_PATH/aj_studying.service"
 
     # Copy the service file to the server
     rsync -Pauvht --stats $APP_NAME.service $DESTINATION:~/ 2>&1 > /dev/null
@@ -136,6 +141,7 @@ if [ $? -eq 0 ]; then
     echo -e "\e[32m\n\n############################################################\e[0m"
     echo -e "\e[32m################Service restarted successfully###################\e[0m"
     echo -e "\e[32m############################################################\e[0m"
+    exit 0
 else
     # Echo in red
     echo -e "\e[31m\n\n############################################################\e[0m"
@@ -143,3 +149,22 @@ else
     echo -e "\e[31m############################################################\e[0m"
     exit 1
 fi
+
+
+
+# set -o errexit
+# set -o nounset
+# set -o pipefail
+# set -o xtrace
+
+# USER_NAME="ripley"
+# IP=192.168.110.51
+
+# readonly TARGET_HOST=$USER_NAME@$IP
+# readonly TARGET_PATH=/home/$USER_NAME
+# readonly TARGET_ARCH=aarch64-unknown-linux-gnu
+# readonly SOURCE_PATH=./target/${TARGET_ARCH}/release/aj_studying
+
+# cross build --release --target=${TARGET_ARCH}
+# rsync -Pauvht --stats ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH}
+# ssh -t ${TARGET_HOST} sudo systemctl restart antenna_switcher_api.service

@@ -2,9 +2,10 @@ $error_red: hsl(0, 100%, 50%); // red
 
 
 #error_block {
+    position: relative;
+    z-index: 100;
     grid-area: header;
-    
-    width: 280px;
+    width: 200px;
     height: 80px;
     border-radius: 30px;
     display: flex;
@@ -12,19 +13,20 @@ $error_red: hsl(0, 100%, 50%); // red
     justify-content: center;
     align-items: center;
     margin: 0 auto;
-
-    background-color: $inner_background;
+    color: black;
+    background-color: $error_red;
 
     .error {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	// gradient background
+	color: black;
 	
 	&__information {
 	    font-size: 1em;
 	    margin: 1em;
+	    color: black;
 	}
 
 	@keyframes error {
