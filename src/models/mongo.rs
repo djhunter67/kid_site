@@ -1,7 +1,7 @@
 use actix_web::cookie::Cookie;
 use log::{debug, error, info, warn};
 use mongodb::{
-    bson::{doc, extjson::de::Error, oid::ObjectId, DateTime},
+    bson::{doc, extjson::de::Error, oid::ObjectId, DateTime, Document},
     results::{DeleteResult, InsertOneResult, UpdateResult},
     Collection, Database,
 };
@@ -122,23 +122,19 @@ impl MongoRepo {
         email: Option<&str>,
     ) -> Result<User, Error> {
         info!("Get users endpoint hit");
-        let filter = object_id.map_or_else(
+        let filter: Document = object_id.map_or_else(
             || {
                 doc! {
-                    "email": email.expect("Failed to find email",
-                )
-                                }
+                "email": email.expect("Failed to find email")
+                            }
             },
             |id| doc! { "_id": id },
         );
 
         let user = match self.collection.find_one(filter).await {
-            Ok(user) => {
-                debug!("User found");
-                user
-            }
+            Ok(user) => user,
             Err(err) => {
-                error!("Failed to find document in collection: {err}");
+                error!("Failed to search collection: {err}");
                 return Err(Error::DeserializationError {
                     message: "Failed to find document in collection".to_string(),
                 });

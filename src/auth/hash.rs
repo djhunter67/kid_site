@@ -1,6 +1,6 @@
 use argon2::{
     password_hash::{self, SaltString},
-    Argon2, PasswordHash, PasswordVerifier,
+    Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
 use log::{error, warn};
 use rand::rngs::OsRng;
@@ -33,23 +33,30 @@ pub async fn pw(password: &[u8]) -> String {
 /// # Panics
 ///   - If the hash is not parsable
 pub async fn verify_pw(logged_in: String, password: Vec<u8>) -> Result<(), password_hash::Error> {
-    warn!("Hashing pw");
-
-    let salt = SaltString::generate(OsRng);
+    let salt = SaltString::generate(&mut OsRng);
 
     let argon2 = Argon2::default();
 
-    let mut buf = [0u8; 32];
+    let password = pw(password.as_slice()).await;
 
-    match argon2.hash_password_into(password.as_slice(), salt.as_ref().as_bytes(), &mut buf) {
-        Ok(()) => (),
+    warn!("Hashing pw");
+    let password_hash = match argon2.hash_password(password.as_bytes(), &salt) {
+        Ok(hw) => hw.to_string(),
         Err(err) => {
             error!("Failed to hash pw: {err}");
-            return Err(err.into());
+            return Err(err);
         }
-    }
+    };
 
-    let parsed_hash = match PasswordHash::new(logged_in.as_str()) {
+    let pword_to_check = match argon2.hash_password(logged_in.as_bytes(), &salt) {
+        Ok(hw) => hw.to_string(),
+        Err(err) => {
+            error!("Failed to hash pw: {err}");
+            return Err(err);
+        }
+    };
+
+    let parsed_hash = match PasswordHash::new(&password_hash) {
         Ok(hash) => hash,
         Err(err) => {
             error!("Failed to hash pw: {err}");
@@ -57,8 +64,20 @@ pub async fn verify_pw(logged_in: String, password: Vec<u8>) -> Result<(), passw
         }
     };
 
-    Argon2::default()
-        .verify_password(&buf, &parsed_hash)
+    let pword_hash = match PasswordHash::new(&pword_to_check) {
+        Ok(hash) => hash,
+        Err(err) => {
+            error!("Failed to hash pw: {err}");
+            return Err(err);
+        }
+    };
+
+    warn!("Passwords Check: {}", password_hash == pword_to_check);
+    warn!("Pass_1: {}", password_hash);
+    warn!("Pass_2: {}", pword_to_check);
+
+    argon2
+        .verify_password(password.as_bytes(), &parsed_hash)
         .inspect_err(|err| {
             error!("Failed to verify password: {:?}", err);
         })

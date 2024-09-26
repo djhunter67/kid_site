@@ -61,7 +61,7 @@ pub async fn login_user(
 
     let pool = MongoRepo::new(&pool.as_ref().to_owned());
 
-    match pool.get_active_user(&user.email).await {
+    match pool.get_user(None, Some(&user.email)).await {
         Ok(logged_in_user) => match tasker(logged_in_user.clone())
             .await
             .expect("Async blocking failed")
@@ -83,13 +83,13 @@ pub async fn login_user(
                     logged_in_user.id.expect("failed to get creds").to_string(),
                     logged_in_user.id,
                 ) {
-                    Ok(()) => info!("`user_id` inserted into session"),
-                    Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
+                    Ok(()) => info!("user_id inserted into session"),
+                    Err(err) => error!("user_id cannot be inserted into session: {err:#?}"),
                 }
 
                 match session.insert(user.email, logged_in_user.email) {
-                    Ok(()) => info!("`user_email` inserted into session"),
-                    Err(err) => error!("`user_email` cannot be inserted into session: {err:#?}"),
+                    Ok(()) => info!("user_email inserted into session"),
+                    Err(err) => error!("user_email cannot be inserted into session: {err:#?}"),
                 }
 
                 let template = Index { title: "Quiz site" };
