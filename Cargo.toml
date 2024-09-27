@@ -42,9 +42,10 @@ dotenv = "0.15.0"
 future-utils = "0.12.1"
 hex = "0.4.3"
 lazy_static = "1.5.0"
-lettre = { version = "0.11.7", features = ["builder", "tokio1-native-tls"] }
+lettre = { version = "0.11.9", features = ["builder", "tokio1-native-tls"]} 
 log = "0.4.22"
 mongodb = "3.0.1"
+openssl = { version = "0.10.66", features = ["vendored"] }
 pasetors = "0.7.0"
 rand = "0.8.5"
 serde = { version = "1.0.208", features = ["derive"] }

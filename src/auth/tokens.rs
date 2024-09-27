@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use deadpool_redis::redis::{aio, AsyncCommands, RedisError};
 use log::{debug, error, info, warn};
 use mongodb::bson::oid::ObjectId;

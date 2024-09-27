@@ -23,23 +23,41 @@ echo -e "\e[33mBuilding the Rust application for Release\e[0m"
 # cargo build --release --quiet # 2>&1 > /dev/null
 cross build --release --target=aarch64-unknown-linux-gnu
 
-echo -e "\e[33mCopying the binary to the server\e[0m"
-# Copy the binary to the server
-rsync -Pauvht --stats {.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
+echo -e "\e[33mCopying the build files to the server\e[0m"
+rsync -Pauvht --stats {settings,.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
+# rsync -Paurvht --stats ./ $DESTINATION:${DEST_PATH} --exclude target --exclude .git --exclude .github --exclude .gitignore --exclude aj_quiz.log --exclude scan_yam.log --exclude README.md --exclude deploy.sh --exclude target  --exclude tests --exclude .cargo --exclude \*\~ 
 
 # Check if the last command was successful
 if [ $? -eq 0 ]; then
     # Echo in green
     echo -e "\e[32m\n\n############################################################\e[0m"
-    echo -e "\e[32m################Deployment successful###################\e[0m"
-    echo -e "\e[32m############################################################\e[0m"
+    echo -e "\e[32m################Transfer Successful###################\e[0m"
+    echo -e "\e[32m############################################################\e[0m\n"
 else
     # Echo in red
     echo -e "\e[31m\n\n############################################################\e[0m"
-    echo -e "\e[31m################Deployment failed###################\e[0m"
+    echo -e "\e[31m################Transfer Failed###################\e[0m"
     echo -e "\e[31m############################################################\e[0m"
     exit 1
 fi
+
+# echo -e "\n\e[33mBuilding the Rust application on the server\e[0m"
+# ssh -t $DESTINATION "~/.cargo/bin/cargo build --manifest-path ${DEST_PATH}/Cargo.toml --release 2>&1 > /dev/null"
+
+# # Check if the last command was successful
+# if [ $? -eq 0 ]; then
+#     # Echo in green
+#     echo -e "\e[32m\n\n############################################################\e[0m"
+#     echo -e "\e[32m################Build Successful###################\e[0m"
+#     echo -e "\e[32m############################################################\e[0m\n"
+# else
+#     # Echo in red
+#     echo -e "\e[31m\n\n############################################################\e[0m"
+#     echo -e "\e[31m################Build Failed###################\e[0m"
+#     echo -e "\e[31m############################################################\e[0m"
+#     exit 1
+# fi
+
 
 # Check if the destination server has a systemctl service for the $APP_NAME
 ssh -t $DESTINATION "systemctl status ${APP_NAME} 2>&1 > /dev/null" 
@@ -47,12 +65,12 @@ ssh -t $DESTINATION "systemctl status ${APP_NAME} 2>&1 > /dev/null"
 if [ $? -eq 0 ]; then
     # Echo in green
     echo -e "\e[32m\n\n############################################################\e[0m"
-    echo -e "\e[32m################Service is running###################\e[0m"
+    echo -e "\e[32m################Service is Running###################\e[0m"
     echo -e "\e[32m############################################################\e[0m"
 else
     # Echo in red
     echo -e "\e[31m\n\n############################################################\e[0m"
-    echo -e "\e[31m################Service is not running###################\e[0m"
+    echo -e "\e[31m################Service is Not Running###################\e[0m"
     echo -e "\e[31m############################################################\e[0m"
 
     # Create the service file
