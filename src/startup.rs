@@ -13,7 +13,6 @@ use crate::{
     endpoints::{
         health::health_check,
         images::{english_image, math_image, science_image, social_studies_image},
-        index::index,
         login::{login, login_user},
         register::{register, registration},
         templates::{favicon, htmx, response_targets, source_map, stylesheet},
@@ -35,7 +34,7 @@ impl Application {
     /// # Panics
     ///  - If the application could not be built
     pub async fn build(
-        settings: crate::settings::Settings,
+        settings: Settings,
         test_pool: Option<Database>,
     ) -> Result<Self, std::io::Error> {
         info!("Buidling the main application");

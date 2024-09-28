@@ -1,4 +1,5 @@
 use actix_web::cookie::Cookie;
+use argon2::password_hash::SaltString;
 use log::{debug, error, info, warn};
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId, DateTime, Document},
@@ -21,6 +22,7 @@ pub struct User {
     pub sign_up_date: Option<DateTime>,
     pub email: String,
     pub password: String,
+    pub salt: String,
 }
 
 impl User {
@@ -32,6 +34,7 @@ impl User {
         email: String,
         password: &str,
     ) -> Self {
+        let salt = SaltString::generate(&mut rand::thread_rng());
         Self {
             id: None,
             first_name,
@@ -40,25 +43,26 @@ impl User {
             thumbnail: None,
             sign_up_date: Some(sign_up_date),
             email,
-            password: pw(String::from(password)).await,
+            salt: salt.to_string(),
+            password: pw(String::from(password), salt).await,
         }
     }
 }
 
-impl From<CreateNewUser> for User {
-    fn from(new_user: CreateNewUser) -> Self {
-        Self {
-            id: None,
-            first_name: new_user.first_name,
-            last_name: new_user.last_name,
-            is_active: Some(false),
-            thumbnail: None,
-            sign_up_date: Some(DateTime::now()),
-            email: new_user.email,
-            password: new_user.password,
-        }
-    }
-}
+// impl From<CreateNewUser> for User {
+//     fn from(new_user: CreateNewUser) -> Self {
+//         Self {
+//             id: None,
+//             first_name: new_user.first_name,
+//             last_name: new_user.last_name,
+//             is_active: Some(false),
+//             thumbnail: None,
+//             sign_up_date: Some(DateTime::now()),
+//             email: new_user.email,
+//             password: new_user.password,
+//         }
+//     }
+// }
 
 impl Display for User {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -90,6 +94,7 @@ impl MongoRepo {
     /// # Panics
     ///   - If the document fails to insert into the collection
     pub async fn create_user(&self, new_user: CreateNewUser) -> Result<InsertOneResult, Error> {
+        let salt = SaltString::generate(&mut rand::thread_rng());
         let new_doc = User {
             id: None,
             first_name: new_user.first_name,
@@ -98,7 +103,8 @@ impl MongoRepo {
             is_active: Some(false),
             sign_up_date: Some(DateTime::now()),
             email: new_user.email,
-            password: pw(new_user.password).await,
+            salt: salt.to_string(),
+            password: pw(new_user.password, salt).await,
         };
 
         let user = self
@@ -199,6 +205,7 @@ impl MongoRepo {
         new_user: User,
     ) -> Result<UpdateResult, Error> {
         info!("Update user endpoint hit");
+        let salt = SaltString::generate(&mut rand::thread_rng());
         let filter = doc! { "_id": object_id };
         let new_doc = doc! {
             "$set": {
@@ -208,7 +215,8 @@ impl MongoRepo {
         "thumbnail": new_user.thumbnail,
         "sign_up_date": new_user.sign_up_date,
         "is_active": new_user.is_active,
-        "password": pw(new_user.password).await,
+            "salt": salt.to_string(),
+        "password": pw(new_user.password, salt).await,
             }
         };
 

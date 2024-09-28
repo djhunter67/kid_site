@@ -1,6 +1,6 @@
 use std::env;
 
-use log::{debug, info};
+use log::{debug, info, warn};
 use mongodb::options::ClientOptions;
 use serde::Deserialize;
 
@@ -21,6 +21,7 @@ pub struct Secret {
     pub secret_key: String,
     pub token_expiration: i64,
     pub hmac_secret: String,
+    pub salt: String,
 }
 
 #[derive(Deserialize, Clone)]
@@ -156,15 +157,15 @@ pub fn get() -> Result<Settings, config::ConfigError> {
         Err(err) => return Err(config::ConfigError::Message(err)),
     };
     let environment_filename = format!("{}.yaml", environment.as_str());
-    debug!(
+    warn!(
         "Building the settings for the {} environment",
         environment.as_str()
     );
-    let settings = config::Config::builder()
-        .add_source(config::File::from(setting_directory.join("base.yaml")))
+    let settings = match config::Config::builder()
         .add_source(config::File::from(
             setting_directory.join(environment_filename),
         ))
+        .add_source(config::File::from(setting_directory.join("base.yaml")))
         // Add in settings from environment variables (with a prefix of APP and '__' as seperator)
         // e.g `APP_APPLICATION__PORT_5001 would set `Setting.application.port`
         .add_source(
@@ -172,7 +173,11 @@ pub fn get() -> Result<Settings, config::ConfigError> {
                 .prefix_separator("_")
                 .separator("__"),
         )
-        .build()?;
+        .build()
+    {
+        Ok(settings) => settings,
+        Err(err) => return Err(err),
+    };
 
     settings.try_deserialize::<Settings>()
 }

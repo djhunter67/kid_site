@@ -52,11 +52,11 @@ pub async fn login_user(
 
     let tasker = |registered_user: User| {
         debug!("Creating spawn_blocking task to verify password.");
-        task::spawn_blocking(move || {
-            let registered_creds = registered_user.password;
-            let user_attempt = user.password;
-            verify_pw(registered_creds, user_attempt)
-        })
+        // task::spawn_blocking(move || {
+        let registered_creds = registered_user.password;
+        let user_attempt = user.password;
+        verify_pw(registered_creds, user_attempt, registered_user.salt)
+        // })
     };
 
     let pool = MongoRepo::new(&pool.as_ref().to_owned());
@@ -64,8 +64,8 @@ pub async fn login_user(
     match pool.get_user(None, Some(&user.email)).await {
         Ok(logged_in_user) => match tasker(logged_in_user.clone())
             .await
-            .expect("Async blocking failed")
-            .await
+            // .expect("Async blocking failed")
+            // .await
         {
             Ok(()) => {
                 info!("User logged in successfully.");
