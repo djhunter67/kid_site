@@ -53,9 +53,9 @@ pub async fn login_user(
     let tasker = |registered_user: User| {
         debug!("Creating spawn_blocking task to verify password.");
         task::spawn_blocking(move || {
-            let logged_in = registered_user.password;
-            let user_entered = user.password.as_bytes().to_vec();
-            verify_pw(logged_in, user_entered)
+            let registered_creds = registered_user.password;
+            let user_attempt = user.password;
+            verify_pw(registered_creds, user_attempt)
         })
     };
 
@@ -96,7 +96,10 @@ pub async fn login_user(
 
                 let body = template.render().expect("Index template rendering");
 
-                HttpResponse::Ok().content_type("text/html").body(body)
+                HttpResponse::Ok()
+                    .content_type("text/html")
+                    .append_header(("Authorization", "Bearer token"))
+                    .body(body)
             }
             Err(err) => {
                 error!("Basic User login failed: {err:#?}",);

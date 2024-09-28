@@ -11,7 +11,13 @@ use mongodb::Database;
 
 use crate::{
     endpoints::{
-        health::health_check, images::{english_image, math_image, science_image, social_studies_image}, index::index, login::{login, login_user}, register::{register, registration}, templates::{favicon, htmx, response_targets, source_map, stylesheet}, users::{create, delete_user, get_user, get_users, update_user}
+        health::health_check,
+        images::{english_image, math_image, science_image, social_studies_image},
+        index::index,
+        login::{login, login_user},
+        register::{register, registration},
+        templates::{favicon, htmx, response_targets, source_map, stylesheet},
+        users::{create, delete_user, get_user, get_users, update_user},
     },
     settings::{self, Settings},
 };
@@ -147,7 +153,7 @@ async fn run(
             .service(math_image)
             .service(social_studies_image)
             .service(login)
-            .service(index)
+            // .service(index)
             .service(login_user)
             .service(registration)
             .service(register)

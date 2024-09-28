@@ -3,27 +3,33 @@ use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
 use log::{error, warn};
-use rand::rngs::OsRng;
+pub(crate) use rand::rngs::OsRng;
+use sha3::{Digest, Sha3_256};
 
 /// # Result
 ///   - A string containing the hash of the password
 /// # Panics
 ///   - If the password cannot be hashed
-pub async fn pw(password: &[u8]) -> String {
-    let salt = SaltString::generate(OsRng);
+pub async fn pw(password: String) -> String {
+    let salt = SaltString::from_b64("salt-has-to-be-longer--but-how-long")
+        .expect("Failed to generate salt");
     let salt = salt.as_ref().as_bytes();
     let mut pwd_buffer = [0u8; 32];
     Argon2::default()
-        .hash_password_into(password, salt, &mut pwd_buffer)
+        .hash_password_into(password.as_bytes(), salt, &mut pwd_buffer)
         .expect("Failed to hash password");
 
-    // hex::encode(pwd_buffer)
-    // turn the buffer into a string
-    let mut hash = String::new();
-    for byte in &pwd_buffer {
-        hash.push_str(&format!("{byte}"));
-    }
-    hash
+    pwd_buffer.iter().fold(String::new(), |mut acc, byte| {
+        acc.push_str(&byte.to_string());
+        acc
+    })
+
+    // let password_hashed = Sha3_256::digest(password);
+
+    // password_hashed.iter().fold(String::new(), |mut acc, byte| {
+    //     acc.push_str(&byte.to_string());
+    //     acc
+    // })
 }
 
 /// # Result
@@ -32,26 +38,29 @@ pub async fn pw(password: &[u8]) -> String {
 ///   - ``password_hash::Error`` if the password is incorrect
 /// # Panics
 ///   - If the hash is not parsable
-pub async fn verify_pw(logged_in: String, password: Vec<u8>) -> Result<(), password_hash::Error> {
+pub async fn verify_pw(
+    registered_creds: String,
+    user_attempt: String,
+) -> Result<(), password_hash::Error> {
     let salt = SaltString::generate(&mut OsRng);
 
     let argon2 = Argon2::default();
 
-    let password = pw(password.as_slice()).await;
+    let password = pw(user_attempt).await;
 
     warn!("Hashing pw");
     let password_hash = match argon2.hash_password(password.as_bytes(), &salt) {
         Ok(hw) => hw.to_string(),
         Err(err) => {
-            error!("Failed to hash pw: {err}");
+            error!("Failed to hash user-attempt: {err}");
             return Err(err);
         }
     };
 
-    let pword_to_check = match argon2.hash_password(logged_in.as_bytes(), &salt) {
+    let pword_to_check = match argon2.hash_password(registered_creds.as_bytes(), &salt) {
         Ok(hw) => hw.to_string(),
         Err(err) => {
-            error!("Failed to hash pw: {err}");
+            error!("Failed to hash registered pw: {err}");
             return Err(err);
         }
     };
@@ -59,22 +68,27 @@ pub async fn verify_pw(logged_in: String, password: Vec<u8>) -> Result<(), passw
     let parsed_hash = match PasswordHash::new(&password_hash) {
         Ok(hash) => hash,
         Err(err) => {
-            error!("Failed to hash pw: {err}");
+            error!("Failed to cast: {err}");
             return Err(err);
         }
     };
 
-    let pword_hash = match PasswordHash::new(&pword_to_check) {
+    let unused_parse = match PasswordHash::new(&pword_to_check) {
         Ok(hash) => hash,
         Err(err) => {
-            error!("Failed to hash pw: {err}");
+            error!("Failed to cast: {err}");
             return Err(err);
         }
     };
 
-    warn!("Passwords Check: {}", password_hash == pword_to_check);
-    warn!("Pass_1: {}", password_hash);
-    warn!("Pass_2: {}", pword_to_check);
+    warn!("Hash Passwords Check: {}", password_hash == pword_to_check);
+    warn!("Hash Pass_1: {}", password_hash);
+    warn!("Hash Pass_2: {}", pword_to_check);
+    warn!("Pre-Hash PW Check: {}", password == registered_creds);
+    warn!("Password 1    : {}", password);
+    warn!("Password from : {}", registered_creds);
+    warn!("Parsed Hash: {:?}", parsed_hash);
+    warn!("Unused Parse: {:?}", unused_parse);
 
     argon2
         .verify_password(password.as_bytes(), &parsed_hash)

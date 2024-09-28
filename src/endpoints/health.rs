@@ -16,6 +16,7 @@ pub async fn health_check() -> impl Responder {
 ///   - None
 /// # Panics
 ///   - Failing to render error page.
+#[must_use]
 pub fn render_error<'a>(
     status: StatusCode,
     message: &'a str,

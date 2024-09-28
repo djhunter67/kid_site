@@ -40,7 +40,7 @@ impl User {
             thumbnail: None,
             sign_up_date: Some(sign_up_date),
             email,
-            password: pw(password.as_bytes()).await,
+            password: pw(String::from(password)).await,
         }
     }
 }
@@ -98,7 +98,7 @@ impl MongoRepo {
             is_active: Some(false),
             sign_up_date: Some(DateTime::now()),
             email: new_user.email,
-            password: pw(new_user.password.as_bytes()).await,
+            password: pw(new_user.password).await,
         };
 
         let user = self
@@ -208,7 +208,7 @@ impl MongoRepo {
         "thumbnail": new_user.thumbnail,
         "sign_up_date": new_user.sign_up_date,
         "is_active": new_user.is_active,
-        "password": pw(new_user.password.as_bytes()).await,
+        "password": pw(new_user.password).await,
             }
         };
 

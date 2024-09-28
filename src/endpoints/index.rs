@@ -7,7 +7,7 @@ use crate::endpoints::templates::Index;
 #[get("/main")]
 pub async fn index() -> HttpResponse {
     info!("Rendering the index page");
-    let template = Index { title: "AJ Quiz" };
+    let template = Index { title: "Quiz site" };
 
     debug!("rendering the main page");
     let body = match template.render() {
