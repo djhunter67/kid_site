@@ -73,7 +73,6 @@ pub async fn update_user(
         is_active: Some(false),
         email: new_user.email.clone(),
         sign_up_date: new_user.sign_up_date,
-        salt: String::from("************"),
         password: String::from("************"),
     };
 

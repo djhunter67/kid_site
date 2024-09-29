@@ -55,7 +55,7 @@ pub async fn login_user(
         // task::spawn_blocking(move || {
         let registered_creds = registered_user.password;
         let user_attempt = user.password;
-        verify_pw(registered_creds, user_attempt, registered_user.salt)
+        verify_pw(registered_creds, user_attempt)
         // })
     };
 
