@@ -9,6 +9,8 @@ readonly SOURCE_PATH=target/${TARGET_ARCH}/release/aj_studying
 # Look in the target/release/ directory for the binary and that is the name of the application
 APP_NAME=$(ls target/$TARGET_ARCH/release/ | head -n 1)
 
+echo "APP_NAME: $APP_NAME"
+
 if [ -z "$DESTINATION" ]; then
     echo "Destination is required"
     echo "EXAMPLE: ./deploy.sh 192.168.1.10"
@@ -24,7 +26,7 @@ echo -e "\e[33mBuilding the Rust application for Release\e[0m"
 cross build --release --target=aarch64-unknown-linux-gnu
 
 echo -e "\e[33mCopying the build files to the server\e[0m"
-rsync -Pauvht --stats {settings,.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} 2>&1 > /dev/null
+rsync -Pauvht --stats {settings,.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} --exclude target --exclude .git --exclude .github --exclude .gitignore --exclude aj_quiz.log --exclude scan_yam.log --exclude README.md --exclude deploy.sh --exclude target  --exclude tests --exclude .cargo --exclude \*\~ 2>&1 > /dev/null
 # rsync -Paurvht --stats ./ $DESTINATION:${DEST_PATH} --exclude target --exclude .git --exclude .github --exclude .gitignore --exclude aj_quiz.log --exclude scan_yam.log --exclude README.md --exclude deploy.sh --exclude target  --exclude tests --exclude .cargo --exclude \*\~ 
 
 # Check if the last command was successful

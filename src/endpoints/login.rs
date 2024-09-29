@@ -3,7 +3,7 @@ use actix_web::{
     get,
     http::StatusCode,
     post,
-    rt::task,
+    // rt::task,
     web::{Data, Form},
     HttpResponse,
 };
@@ -97,7 +97,7 @@ pub async fn login_user(
                 let body = template.render().expect("Index template rendering");
 
                 HttpResponse::Ok()
-                    .content_type("text/html")
+                    .content_type("text/html")                                  
                     .append_header(("Authorization", "Bearer token"))
                     .body(body)
             }

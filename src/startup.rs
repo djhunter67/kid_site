@@ -1,8 +1,11 @@
 use std::net;
 
+use actix_cors::Cors;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
+use actix_web::http::header;
 use actix_web::{
     http::KeepAlive,
+    middleware,
     web::{scope, Data},
     App, HttpServer,
 };
@@ -106,7 +109,7 @@ async fn run(
     info!("Obtaining the cookie secret");
 
     // Connect to the MongoDB database
-    let db_data = Data::new(db_pool);
+    let mongo_pool = Data::new(db_pool);
     info!("Processed DB connection pool for distribution");
 
     // Redis connection pool
@@ -121,12 +124,23 @@ async fn run(
             ));
         }
     };
+    info!("Established secondary connection pool");
 
-    info!("Established Redis connection pool");
     let redis_pool = Data::new(redis_pool);
+
+    let _cors_middleware = Cors::default()
+        .allowed_origin("http://localhost:8099")
+        .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
+        .allowed_headers(vec![
+            header::AUTHORIZATION,
+            header::ACCEPT,
+            header::CONTENT_TYPE,
+        ])
+        .max_age(3600);
 
     let server = HttpServer::new(move || {
         App::new()
+            // .wrap(cors_middleware)
             .wrap(if settings.debug {
                 warn!("Debug mode");
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
@@ -139,8 +153,10 @@ async fn run(
                 warn!("Production mode");
                 SessionMiddleware::new(CookieSessionStore::default(), secret_key.clone())
             })
-            // .wrap(middleware::Logger::default())
-            .app_data(db_data.clone())
+            .wrap(middleware::Compress::default())
+            .wrap(middleware::DefaultHeaders::new().add(("X-Version", env!("CARGO_PKG_VERSION"))))
+            .wrap(middleware::Logger::default())
+            .app_data(mongo_pool.clone())
             .app_data(redis_pool.clone())
             .service(favicon)
             .service(stylesheet)

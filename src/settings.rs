@@ -1,6 +1,6 @@
 use std::env;
 
-use log::{debug, info, warn};
+use log::{info, warn};
 use mongodb::options::ClientOptions;
 use serde::Deserialize;
 
@@ -21,7 +21,6 @@ pub struct Secret {
     pub secret_key: String,
     pub token_expiration: i64,
     pub hmac_secret: String,
-    pub salt: String,
 }
 
 #[derive(Deserialize, Clone)]
@@ -150,7 +149,7 @@ pub fn get() -> Result<Settings, config::ConfigError> {
     let setting_directory = base_path.join("settings");
 
     let environment: Environment = match env::var("APP_ENVIRONMENT")
-        .unwrap_or_else(|_| "development".into())
+        .unwrap_or_else(|_| String::from("development"))
         .try_into()
     {
         Ok(env) => env,
@@ -159,7 +158,7 @@ pub fn get() -> Result<Settings, config::ConfigError> {
     let environment_filename = format!("{}.yaml", environment.as_str());
     warn!(
         "Building the settings for the {} environment",
-        environment.as_str()
+        environment.as_str().to_uppercase()
     );
     let settings = match config::Config::builder()
         .add_source(config::File::from(

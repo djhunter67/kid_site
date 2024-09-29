@@ -7,7 +7,6 @@ debug: true
 
 secret:
   secret_key: "aga3BLk*uuca^CQh@K3^n2mCXWMbLtAKF#E@&zEu8rcXvZzFu5wn&YyboriRVieQ"
-  salt: "zEu8rcXvZzFu5wnYyboriRVieQ"
   token_expiration: 30
   hmac_secret: "2oslbzxkbzlcy2yuwc797hzzc7b2fqkxyw5ubl8ixxne2gwbpzxg3c6phl9ra8hb"
 

@@ -1,13 +1,14 @@
 use argon2::{
     password_hash::{self, SaltString},
-    Argon2, Params,
+    Argon2, Params, PasswordHash,
 };
+use log::warn;
 
 /// # Result
 ///   - A string containing the hash of the password
 /// # Panics
 ///   - If the password cannot be hashed
-pub async fn pw(password: String, salt: SaltString) -> String {
+pub async fn pw(password: String, salt: SaltString) -> PasswordHash<'static> {
     let salt = salt.as_ref().as_bytes();
     let mut pwd_buffer = [0u8; 32];
     Argon2::new(
@@ -18,10 +19,14 @@ pub async fn pw(password: String, salt: SaltString) -> String {
     .hash_password_into(password.as_bytes(), salt, &mut pwd_buffer)
     .expect("Failed to hash password");
 
-    pwd_buffer.iter().fold(String::new(), |mut acc, byte| {
-        acc.push_str(&byte.to_string());
-        acc
-    })
+    let password_string = String::from_utf8_lossy(&pwd_buffer).to_string();
+
+    let password_hash =
+        PasswordHash::new(&password_string).expect("Failed to create password hash");
+
+    warn!("Password hash: {}", password_hash);
+
+    password_hash
 }
 
 /// # Result
