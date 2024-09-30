@@ -1,5 +1,4 @@
 use actix_web::cookie::Cookie;
-use log::{debug, error, info, warn};
 use mongodb::{
     bson::{doc, extjson::de::Error, oid::ObjectId, DateTime, Document},
     results::{DeleteResult, InsertOneResult, UpdateResult},
@@ -7,6 +6,7 @@ use mongodb::{
 };
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::{auth::hash::pw, endpoints::register::CreateNewUser};
 
@@ -48,7 +48,9 @@ pub struct User {
 // }
 
 impl From<CreateNewUser> for User {
+    #[instrument(name = "Create user", level = "debug", target = "aj_studying", fields(id = %new_user.email))]
     fn from(new_user: CreateNewUser) -> Self {
+        debug!("Extracting user data from the new user");
         Self {
             id: None,
             first_name: new_user.first_name,
@@ -63,6 +65,14 @@ impl From<CreateNewUser> for User {
 }
 
 impl Display for User {
+    #[instrument(
+        name = "Display user",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, f),
+	fields(
+	    id = %self.email
+	))]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(
             f,
@@ -79,6 +89,12 @@ pub struct MongoRepo {
 
 impl MongoRepo {
     #[must_use]
+    #[instrument(
+        name = "Create new MongoRepo",
+        level = "debug",
+        target = "aj_studying",
+        skip(collection)
+    )]
     pub fn new(collection: &Database) -> Self {
         let collection = collection.collection("users");
 
@@ -91,23 +107,18 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to insert into the collection
     /// # Panics
     ///   - If the document fails to insert into the collection
+    #[instrument(
+        name = "Create user",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, new_user)
+    )]
     pub async fn create_user(&self, new_user: CreateNewUser) -> Result<InsertOneResult, Error> {
-        // let new_doc = User {
-        //     id: None,
-        //     first_name: new_user.first_name,
-        //     last_name: new_user.last_name,
-        //     thumbnail: None,
-        //     is_active: Some(false),
-        //     sign_up_date: Some(DateTime::now()),
-        //     email: new_user.email,
-        //     password: pw(new_user.password)
-        //         .await
-        //         .expect("Password hashing failed"),
-        // };
-
         let mut new_doc = User::from(new_user);
+        debug!("Extracted user data from the new user: {}", new_doc.email);
 
         new_doc.password = pw(new_doc.password).await.expect("Password hashing failed");
+        info!("Clear text Password hashed");
 
         let user = self
             .collection
@@ -124,6 +135,12 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to find in the collection
     /// # Panics
     ///   - If the document fails to find in the collection
+    #[instrument(
+        name = "Get user",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, object_id, email)
+    )]
     pub async fn get_user(
         &self,
         object_id: Option<ObjectId>,
@@ -165,12 +182,16 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to find in the collection
     /// # Panics
     ///   - If the document fails to find in the collection
+    #[instrument(
+        name = "Get active user",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, email)
+    )]
     pub async fn get_active_user(&self, email: &str) -> Result<User, Error> {
-        info!("Get active user endpoint hit");
         let filter = doc! { "email": email, "is_active": false };
-        // let filter = doc! {};
 
-        warn!("Filter: {:#?}", filter);
+        debug!("Filter for search: {:#?}", filter);
 
         let user = match self.collection.find_one(filter).await {
             Ok(user) => {
@@ -201,6 +222,13 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to update in the collection
     /// # Panics
     ///   - If the document fails to update in the collection
+    #[instrument(
+        name = "Update user",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, object_id, new_user),
+	fields(user_to_update = %new_user.email)
+    )]
     pub async fn update_user(
         &self,
         object_id: ObjectId,
@@ -242,6 +270,12 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to delete from the collection
     /// # Panics
     ///   - If the document fails to delete from the collection
+    #[instrument(
+        name = "Delete user",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, id)
+    )]
     pub async fn delete_user(&self, id: String) -> Result<DeleteResult, Error> {
         info!("Delete user endpoint hit");
         let obj_id = match ObjectId::parse_str(id) {
@@ -278,6 +312,12 @@ impl MongoRepo {
     ///   - Returns an `Error` if the documents fail to find in the collection
     /// # Panics
     ///   - If the documents fail to find in the collection
+    #[instrument(
+        name = "Get all users",
+        level = "debug",
+        target = "aj_studying",
+        skip(self)
+    )]
     pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
         info!("Get all users endpoint hit");
         let mut users: Vec<User> = Vec::new();
@@ -325,6 +365,12 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to update in the collection
     /// # Panics
     ///   - If the document fails to update in the collection
+    #[instrument(
+        name = "Save cookie",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, user_id, cookie)
+    )]
     pub async fn save_cookie(
         &self,
         user_id: User,
@@ -372,6 +418,12 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to find in the collection
     /// # Panics
     ///   - If the document fails to find in the collection
+    #[instrument(
+        name = "Get cookie",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, cookie)
+    )]
     pub async fn get_cookie(&self, cookie: Cookie<'_>) -> Result<User, Error> {
         info!("Get cookie endpoint hit");
         let filter = doc! { "cookie": cookie.value() };
@@ -405,6 +457,12 @@ impl MongoRepo {
     ///   - Returns an `Error` if the document fails to delete from the collection
     /// # Panics
     ///   - If the document fails to delete from the collection
+    #[instrument(
+        name = "Delete cookie",
+        level = "debug",
+        target = "aj_studying",
+        skip(self, cookie)
+    )]
     pub async fn delete_cookie(&self, cookie: Cookie<'_>) -> Result<DeleteResult, Error> {
         info!("Delete cookie endpoint hit");
         let filter = doc! { "cookie": cookie.value() };

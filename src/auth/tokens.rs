@@ -1,5 +1,4 @@
 use deadpool_redis::redis::{aio, AsyncCommands, RedisError};
-use log::{debug, error, info, warn};
 use mongodb::bson::oid::ObjectId;
 use pasetors::{
     claims::{Claims, ClaimsValidationRules},
@@ -10,6 +9,7 @@ use pasetors::{
     Local,
 };
 use rand::{rngs::OsRng, RngCore};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::{
     settings::{self, Settings},
@@ -29,6 +29,12 @@ const SESSION_KEY_PREFIX: &str = "aj_studying_{}";
 /// A ``session_key`` is also encoded. This key is used to destroy the token
 /// as soon as it's been verified. Depending on its usage, the token issued
 /// has at most an hour to live. Which means, it is destroyed after its time-to-live.
+#[instrument(
+    name = "Issue confirmation token",
+    level = "info",
+    target = "aj_studying",
+    skip(redis_connection, is_for_password_change)
+)]
 pub async fn issue_confirmation_token(
     user_id: ObjectId,
     redis_connection: &mut aio::MultiplexedConnection,
@@ -182,6 +188,12 @@ pub async fn issue_confirmation_token(
 /// Verifies and destroys a token. A token is destroyed immediately
 /// it has successfully been verified and all encoded data extracted.
 /// Redis is used for such destruction.
+#[instrument(
+    name = "Verify confirmation token",
+    level = "info",
+    target = "aj_studying",
+    skip(redis_connection, is_password)
+)]
 pub async fn verify_confirmation_token_pasetor(
     token: &str,
     redis_connection: &mut aio::MultiplexedConnection,

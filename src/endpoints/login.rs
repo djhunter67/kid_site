@@ -3,13 +3,13 @@ use actix_web::{
     get,
     http::StatusCode,
     post,
-    // rt::task,
+    rt::task,
     web::{Data, Form},
     HttpResponse,
 };
 use askama::Template;
-use log::{debug, error, info, warn};
 use mongodb::{bson::oid::ObjectId, Database};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::{
     auth::hash::verify_pw,
@@ -23,6 +23,7 @@ use crate::{
 };
 
 #[get("/")]
+#[instrument(name = "Login page", level = "info", target = "aj_studying", skip(_db))]
 pub async fn login(_db: Data<Database>) -> HttpResponse {
     info!("Rendering login page");
 
@@ -42,6 +43,12 @@ pub async fn login(_db: Data<Database>) -> HttpResponse {
 
 #[allow(clippy::future_not_send)]
 #[post("/login")]
+#[instrument(
+    name = "Login user",
+    level = "debug",
+    target = "aj_studying",
+    skip(pool, user, session)
+)]
 pub async fn login_user(
     pool: Data<Database>,
     Form(user): Form<Login>,
@@ -52,11 +59,11 @@ pub async fn login_user(
 
     let tasker = |registered_user: User| {
         debug!("Creating spawn_blocking task to verify password.");
-        // task::spawn_blocking(move || {
-        let registered_creds = registered_user.password;
-        let user_attempt = user.password;
-        verify_pw(registered_creds, user_attempt)
-        // })
+        task::spawn_blocking(move || {
+            let registered_creds = registered_user.password;
+            let user_attempt = user.password;
+            verify_pw(registered_creds, user_attempt)
+        })
     };
 
     let pool = MongoRepo::new(&pool.as_ref().to_owned());
@@ -64,8 +71,8 @@ pub async fn login_user(
     match pool.get_user(None, Some(&user.email)).await {
         Ok(logged_in_user) => match tasker(logged_in_user.clone())
             .await
-            // .expect("Async blocking failed")
-            // .await
+            .expect("Async blocking failed")
+            .await
         {
             Ok(()) => {
                 info!("User logged in successfully.");
@@ -92,12 +99,14 @@ pub async fn login_user(
                     Err(err) => error!("user_email cannot be inserted into session: {err:#?}"),
                 }
 
+                warn!("Session: {:#?}", session.get::<String>("logged_in_user"));
+
                 let template = Index { title: "Quiz site" };
 
                 let body = template.render().expect("Index template rendering");
 
                 HttpResponse::Ok()
-                    .content_type("text/html")                                  
+                    .content_type("text/html")
                     .append_header(("Authorization", "Bearer token"))
                     .body(body)
             }
@@ -125,6 +134,12 @@ pub async fn login_user(
 
 #[allow(clippy::future_not_send)]
 #[post("/logout")]
+#[instrument(
+    name = "Logout user",
+    level = "info",
+    target = "aj_studying",
+    skip(session)
+)]
 pub async fn logout(session: Session) -> HttpResponse {
     info!("Logout endpoint");
     match session_user_id(&session) {
@@ -144,6 +159,12 @@ pub async fn logout(session: Session) -> HttpResponse {
     }
 }
 
+#[instrument(
+    name = "Get user ID from session",
+    level = "info",
+    target = "aj_studying",
+    skip(session)
+)]
 fn session_user_id(session: &Session) -> Result<ObjectId, String> {
     info!("Retrieving user ID from session");
     match session.get(types::USER_ID_KEY) {

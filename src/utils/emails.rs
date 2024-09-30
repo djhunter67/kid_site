@@ -5,8 +5,8 @@ use lettre::{
     transport::smtp::authentication::Credentials,
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
-use log::{debug, error, info};
 use mongodb::bson::oid::ObjectId;
+use tracing::{debug, error, info, instrument};
 
 use crate::{auth::tokens::issue_confirmation_token, endpoints::templates::EmailPage, settings};
 
@@ -16,6 +16,19 @@ use crate::{auth::tokens::issue_confirmation_token, endpoints::templates::EmailP
 ///   - Err(String) if the email could not be sent.
 /// # Panics
 ///   - If the settings could not be retrieved.
+#[instrument(
+    name = "Send email",
+    level = "info",
+    skip(
+        sender_email,
+        recipient_email,
+        recipient_first_name,
+        recipient_last_name,
+        subject,
+        html_content,
+        text_content
+    )
+)]
 pub async fn send_email(
     sender_email: Option<String>,
     recipient_email: String,
@@ -93,6 +106,19 @@ pub async fn send_email(
 ///   - Err(String) if the email could not be sent.
 /// # Panics
 ///   - If the settings could not be retrieved.
+#[instrument(
+    name = "Send multipart email",
+    level = "info",
+    skip(
+        subject,
+        user_id,
+        recipient_email,
+        recipient_first_name,
+        recipient_last_name,
+        template_name,
+        redis_connection
+    )
+)]
 pub async fn send_multipart_email(
     subject: String,
     user_id: ObjectId,

@@ -9,8 +9,9 @@ use actix_web::{
     web::{scope, Data},
     App, HttpServer,
 };
-use log::{debug, error, info, warn};
 use mongodb::Database;
+use tracing::instrument;
+use tracing::{debug, error, info, warn};
 
 use crate::{
     endpoints::{
@@ -24,81 +25,13 @@ use crate::{
     settings::{self, Settings},
 };
 
-pub struct Application {
-    port: u16,
-    server: actix_web::dev::Server,
-}
-
-impl Application {
-    /// # Result
-    ///  - `Ok(Application)` if the application was successfully built
-    /// # Errors
-    ///  - `std::io::Error` if the application could not be built
-    /// # Panics
-    ///  - If the application could not be built
-    pub async fn build(
-        settings: Settings,
-        test_pool: Option<Database>,
-    ) -> Result<Self, std::io::Error> {
-        info!("Buidling the main application");
-        let connection_pool = if let Some(pool) = test_pool {
-            pool
-        } else {
-            get_connection_pool(&settings.mongo).await
-        };
-
-        let address = format!(
-            "{}:{}",
-            settings.application.host, settings.application.port
-        );
-
-        debug!("Binding the TCP port: {address}");
-        let listener: net::TcpListener = net::TcpListener::bind(&address)?;
-        let port = listener.local_addr()?.port();
-        let server = run(listener, connection_pool, settings).await?;
-
-        Ok(Self { port, server })
-    }
-
-    #[must_use]
-    pub const fn port(&self) -> u16 {
-        self.port
-    }
-
-    /// # Result
-    ///  - `Ok(())` if the application was successfully started
-    /// # Errors
-    ///  - `std::io::Error` if the application could not be started
-    /// # Panics
-    ///  - If the application could not be started
-    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
-        info!("Running until stopped");
-        self.server.await
-    }
-}
-
-/// # Result
-///  - `Ok(Database)` if the connection pool was successfully created
-/// # Errors
-///  - `mongodb::error::Error` if the connection pool could not be created
-/// # Panics
-///  - If the connection pool could not be created
-async fn get_connection_pool(settings: &settings::Mongo) -> mongodb::Database {
-    info!("Get mongo connection pool");
-    let mut client_options = settings.mongo_options().await;
-    client_options.app_name = Some(settings.clone().db);
-
-    let client = match mongodb::Client::with_options(client_options) {
-        Ok(client) => client,
-        Err(err) => {
-            error!("Failed to connect to MongoDB: {err}\nExiting...");
-            std::process::exit(1);
-        }
-    };
-    client.database(&settings.db)
-}
-
 #[allow(clippy::unused_async)]
+#[instrument(
+    name = "main runner",
+    level = "info",
+    target = "aj_studying",
+    skip(listener, db_pool, settings)
+)]
 async fn run(
     listener: std::net::TcpListener,
     db_pool: mongodb::Database,
@@ -190,4 +123,97 @@ async fn run(
     .run();
 
     Ok(server)
+}
+pub struct Application {
+    port: u16,
+    server: actix_web::dev::Server,
+}
+
+impl Application {
+    /// # Result
+    ///  - `Ok(Application)` if the application was successfully built
+    /// # Errors
+    ///  - `std::io::Error` if the application could not be built
+    /// # Panics
+    ///  - If the application could not be built
+    #[instrument(
+        name = "Application builder",
+        level = "info",
+        target = "aj_studying",
+        skip(settings, test_pool)
+    )]
+
+    pub async fn build(
+        settings: Settings,
+        test_pool: Option<Database>,
+    ) -> Result<Self, std::io::Error> {
+        info!("Buidling the main application");
+        let connection_pool = if let Some(pool) = test_pool {
+            pool
+        } else {
+            get_connection_pool(&settings.mongo).await
+        };
+
+        let address = format!(
+            "{}:{}",
+            settings.application.host, settings.application.port
+        );
+
+        debug!("Binding the TCP port: {address}");
+        let listener: net::TcpListener = net::TcpListener::bind(&address)?;
+        let port = listener.local_addr()?.port();
+        let server = run(listener, connection_pool, settings).await?;
+
+        Ok(Self { port, server })
+    }
+
+    #[must_use]
+    pub const fn port(&self) -> u16 {
+        self.port
+    }
+
+    /// # Result
+    ///  - `Ok(())` if the application was successfully started
+    /// # Errors
+    ///  - `std::io::Error` if the application could not be started
+    /// # Panics
+    ///  - If the application could not be started
+    #[instrument(
+        name = "Application runner",
+        level = "info",
+        target = "aj_studying",
+        skip(self)
+    )]
+
+    pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
+        info!("Running until stopped");
+        self.server.await
+    }
+}
+
+/// # Result
+///  - `Ok(Database)` if the connection pool was successfully created
+/// # Errors
+///  - `mongodb::error::Error` if the connection pool could not be created
+/// # Panics
+///  - If the connection pool could not be created
+#[instrument(
+    name = "Connection pool getter",
+    level = "info",
+    target = "aj_studying",
+    skip(settings)
+)]
+async fn get_connection_pool(settings: &settings::Mongo) -> mongodb::Database {
+    info!("Get mongo connection pool");
+    let mut client_options = settings.mongo_options().await;
+    client_options.app_name = Some(settings.clone().db);
+
+    let client = match mongodb::Client::with_options(client_options) {
+        Ok(client) => client,
+        Err(err) => {
+            error!("Failed to connect to MongoDB: {err}\nExiting...");
+            std::process::exit(1);
+        }
+    };
+    client.database(&settings.db)
 }

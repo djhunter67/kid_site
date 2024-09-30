@@ -7,9 +7,9 @@ use actix_web::{
 };
 use askama::Template;
 use deadpool_redis::Pool;
-use log::{debug, error, info, warn};
 use mongodb::{bson::oid::ObjectId, Database};
 use serde::{Deserialize, Serialize};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::{
     auth,
@@ -33,6 +33,7 @@ pub struct CreateNewUser {
 }
 
 #[get("/registration")]
+#[instrument(name = "Registration page", level = "info", target = "aj_studying")]
 pub async fn registration() -> HttpResponse {
     info!("Rendering registration page");
     let template = RegisterPage {
@@ -68,6 +69,16 @@ pub async fn registration() -> HttpResponse {
 }
 
 #[post("/register")]
+#[instrument(
+    name = "Register user",
+    level = "info",
+    target = "aj_studying",
+    skip(pool, redis_pool, new_user),
+    fields(
+	email = %new_user.email,
+	first_name = %new_user.first_name,
+	last_name = %new_user.last_name
+    ))]
 pub async fn register(
     pool: Data<Database>,
     Form(new_user): Form<CreateNewUser>,
@@ -147,6 +158,12 @@ struct Parameters {
 }
 
 #[get("/register/confirm")]
+#[instrument(
+    name = "Register confirm",
+    level = "info",
+    target = "aj_studying",
+    skip(pool, redis_pool, parameters)
+)]
 pub async fn confirm(
     parameters: web::Query<Parameters>,
     pool: Data<MongoRepo>,
@@ -224,6 +241,12 @@ pub async fn confirm(
     }
 }
 
+#[instrument(
+    name = "Activate new user",
+    level = "debug",
+    target = "aj_studying",
+    skip(pool, user_id)
+)]
 async fn activate_new_user(
     pool: &MongoRepo,
     user_id: ObjectId,
@@ -233,6 +256,7 @@ async fn activate_new_user(
         Ok(mut user) => {
             debug!("User found");
             user.is_active = Some(true);
+            info!("Updating user to active status");
             pool.update_user(user_id, user)
                 .await
                 .expect("Error activating user");

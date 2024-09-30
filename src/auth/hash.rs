@@ -2,8 +2,8 @@ use argon2::{
     password_hash::{self, SaltString},
     Argon2, Params, PasswordHash, PasswordHasher, PasswordVerifier,
 };
-use log::{error, warn};
 use rand::rngs::OsRng;
+use tracing::{error, instrument, warn};
 
 /// # Result
 ///   - A string containing the hash of the password
@@ -11,6 +11,12 @@ use rand::rngs::OsRng;
 ///   - ``password_hash::Error`` if the password cannot be hashed
 /// # Panics
 ///   - If the password cannot be hashed
+#[instrument(
+    name = "Password hashing",
+    level = "info",
+    target = "aj_studying",
+    skip(password)
+)]
 pub async fn pw(password: String) -> Result<String, password_hash::Error> {
     // OS RNG
     let salt = SaltString::generate(&mut OsRng);
@@ -42,6 +48,12 @@ pub async fn pw(password: String) -> Result<String, password_hash::Error> {
 ///   - ``password_hash::Error`` if the password is incorrect
 /// # Panics
 ///   - If the hash is not parsable
+#[instrument(
+    name = "Password verification",
+    level = "info",
+    target = "aj_studying",
+    skip(registered_creds, user_attempt)
+)]
 pub async fn verify_pw(
     registered_creds: String,
     user_attempt: String,

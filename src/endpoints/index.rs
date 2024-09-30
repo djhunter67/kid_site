@@ -1,10 +1,11 @@
 use actix_web::{get, HttpResponse};
 use askama::Template;
-use log::{debug, error, info};
+use tracing::{debug, error, info, instrument};
 
 use crate::endpoints::templates::Index;
 
 #[get("/main")]
+#[instrument(name = "Main page", level = "debug")]
 pub async fn index() -> HttpResponse {
     info!("Rendering the index page");
     let template = Index { title: "Quiz site" };

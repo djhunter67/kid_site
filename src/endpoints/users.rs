@@ -5,8 +5,8 @@ use actix_web::{
     web::{Data, Json, Path},
     HttpResponse,
 };
-use log::{debug, error, info, warn};
 use mongodb::{bson::oid::ObjectId, Database};
+use tracing::{debug, error, info, instrument, warn};
 
 use crate::{
     endpoints::{health::render_error, register::CreateNewUser},
@@ -14,6 +14,7 @@ use crate::{
 };
 
 #[post("/user")]
+#[instrument(name = "Create user", level = "debug", target = "aj_studying", skip(client), fields(id = %new_user.email))]
 pub async fn create(client: Data<Database>, new_user: Json<CreateNewUser>) -> HttpResponse {
     info!("Creating user API endpoint");
     let db = MongoRepo::new(&client.as_ref().to_owned());
@@ -32,6 +33,7 @@ pub async fn create(client: Data<Database>, new_user: Json<CreateNewUser>) -> Ht
 }
 
 #[get("/user/{id}")]
+#[instrument(name = "Get user", level = "info", target = "aj_studying", skip(client, path), fields(id = %path.email))]
 pub async fn get_user(client: Data<Database>, path: Path<User>) -> HttpResponse {
     info!("Getting user API endpoint");
     let db = MongoRepo::new(&client.as_ref().to_owned());
@@ -50,6 +52,12 @@ pub async fn get_user(client: Data<Database>, path: Path<User>) -> HttpResponse 
 }
 
 #[put("/user/{id}")]
+#[instrument(
+    name = "Update user",
+    level = "info",
+    target = "aj_studying",
+    skip(client, path, new_user)
+)]
 pub async fn update_user(
     client: Data<Database>,
     path: Path<String>,
@@ -105,6 +113,12 @@ pub async fn update_user(
 }
 
 #[delete("/user/{id}")]
+#[instrument(
+    name = "Delete user",
+    level = "debug",
+    target = "aj_studying",
+    skip(client, path)
+)]
 pub async fn delete_user(client: Data<Database>, path: Path<String>) -> HttpResponse {
     info!("Deleting user API endpoint");
     let db = MongoRepo::new(&client.as_ref().to_owned());
@@ -128,6 +142,12 @@ pub async fn delete_user(client: Data<Database>, path: Path<String>) -> HttpResp
 }
 
 #[get("/users")]
+#[instrument(
+    name = "Get all users",
+    level = "debug",
+    target = "aj_studying",
+    skip(client)
+)]
 pub async fn get_users(client: Data<Database>) -> HttpResponse {
     info!("Getting all users API endpoint");
     let db = MongoRepo::new(&client.as_ref().to_owned());

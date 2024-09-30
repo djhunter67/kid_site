@@ -1,8 +1,8 @@
 use std::env;
 
-use log::{info, warn};
 use mongodb::options::ClientOptions;
 use serde::Deserialize;
+use tracing::{info, instrument, warn};
 
 /// Global setting for exposing all preconfigured variables
 #[derive(Deserialize, Clone)]
@@ -73,6 +73,12 @@ impl Mongo {
     ///   - Panics if the ``MongoDB`` environment variables are not set
     /// # Notes
     ///   - mongodb://<credentials>@127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.0
+    #[instrument(
+        name = "MongoDB options",
+        level = "info",
+        target = "aj_studying",
+        skip(self)
+    )]
     pub async fn mongo_options(&self) -> ClientOptions {
         info!("Building the MongoDB connection options");
         let login_config = if self.require_auth {
@@ -111,6 +117,12 @@ impl Environment {
 impl TryFrom<String> for Environment {
     type Error = String;
 
+    #[instrument(
+        name = "Environment conversion",
+        level = "info",
+        target = "aj_studying",
+        skip(s)
+    )]
     fn try_from(s: String) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
             "development" => Ok(Self::Development),
@@ -143,6 +155,7 @@ impl TryFrom<String> for Environment {
 /// followed by "__" separator,  and then the variable.
 /// # Example
 ///   - ``APP__APPLICATION_PORT=5001`` for "port" to be set as "5001"
+#[instrument(name = "Get settings", level = "info", target = "aj_studying")]
 pub fn get() -> Result<Settings, config::ConfigError> {
     info!("Getting the system config settings");
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
