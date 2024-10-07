@@ -2,6 +2,7 @@ use std::net;
 
 use actix_cors::Cors;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
+use actix_web::dev;
 use actix_web::http::header;
 use actix_web::{
     http::KeepAlive,
@@ -13,6 +14,7 @@ use mongodb::Database;
 use tracing::instrument;
 use tracing::{debug, error, info, warn};
 
+use crate::endpoints::index::index;
 use crate::{
     endpoints::{
         health::health_check,
@@ -25,18 +27,17 @@ use crate::{
     settings::{self, Settings},
 };
 
-#[allow(clippy::unused_async)]
 #[instrument(
     name = "main runner",
     level = "info",
     target = "aj_studying",
     skip(listener, db_pool, settings)
 )]
-async fn run(
+fn run(
     listener: std::net::TcpListener,
     db_pool: mongodb::Database,
     settings: Settings,
-) -> Result<actix_web::dev::Server, std::io::Error> {
+) -> Result<dev::Server, std::io::Error> {
     // For each session
     let secret_key = actix_web::cookie::Key::from(settings.secret.hmac_secret.as_bytes());
     info!("Obtaining the cookie secret");
@@ -101,7 +102,7 @@ async fn run(
             .service(math_image)
             .service(social_studies_image)
             .service(login)
-            // .service(index)
+            .service(index)
             .service(login_user)
             .service(registration)
             .service(register)
@@ -140,15 +141,14 @@ impl Application {
         name = "Application builder",
         level = "info",
         target = "aj_studying",
-        skip(settings, test_pool)
+        skip(settings, db_pool)
     )]
-
     pub async fn build(
         settings: Settings,
-        test_pool: Option<Database>,
+        db_pool: Option<Database>,
     ) -> Result<Self, std::io::Error> {
         info!("Buidling the main application");
-        let connection_pool = if let Some(pool) = test_pool {
+        let connection_pool = if let Some(pool) = db_pool {
             pool
         } else {
             get_connection_pool(&settings.mongo).await
@@ -162,7 +162,7 @@ impl Application {
         debug!("Binding the TCP port: {address}");
         let listener: net::TcpListener = net::TcpListener::bind(&address)?;
         let port = listener.local_addr()?.port();
-        let server = run(listener, connection_pool, settings).await?;
+        let server = run(listener, connection_pool, settings)?;
 
         Ok(Self { port, server })
     }
@@ -184,7 +184,6 @@ impl Application {
         target = "aj_studying",
         skip(self)
     )]
-
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
         info!("Running until stopped");
         self.server.await

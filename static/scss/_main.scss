@@ -4,7 +4,6 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
     gap: 3rem;
-    // margin-top: 5rem;
     padding: 0 5rem;
 
     .education_card {
@@ -34,8 +33,6 @@
 	    object-fit: cover;
 	    border-radius: 20px;
 	    margin: 0 auto;
-	    // height: 50%;
-	    // width: 50%;
 
 	    &:hover {
 		box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -43,10 +40,5 @@
 	    }
 	}
     }
-    // #card_container__science {
-    // 	img {
-    // 	    height: 12rem;	    
-    // 	}
-    // }
 }
 
