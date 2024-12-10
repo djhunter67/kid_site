@@ -3,17 +3,18 @@
     height: 100%;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
-    gap: 3rem;
-    padding: 0 5rem;
+    gap: 1.25rem;
+    grid-auto-flow: row;
+    padding: 5rem 5rem;
 
-    .education_card {
+    .education_card { // class
 	width: 20rem;
 	border-radius: 20px;
-	display: grid;
-	align-self: center;
-	grid-template-rows: subgrid;
-	grid-row: span 2;
+	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
+	flex-direction: column;
+	justify-content: center;
 	background-color: $card_background;
 	text-align: center;
 	border: 1px solid rgba(0, 0, 0, 0.1);

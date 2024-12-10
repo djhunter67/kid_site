@@ -106,6 +106,7 @@ fn run(
             .service(login_user)
             .service(registration)
             .service(register)
+            .service(scope("/adrian"))
             .service(
                 scope("/v1")
                     .service(create)
