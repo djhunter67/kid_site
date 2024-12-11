@@ -174,7 +174,7 @@ pub async fn send_multipart_email(
 
     let template = email.render().expect("Could not render email template.");
 
-    let text = format!(r#"Tap the link below to confirm your email address.{confirmation_link}"#);
+    let text = format!("Tap the link below to confirm your email address.{confirmation_link}");
 
     // actix_web::rt::spawn(send_email(
     //     None,

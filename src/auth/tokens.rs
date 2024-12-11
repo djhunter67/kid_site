@@ -136,10 +136,10 @@ pub async fn issue_confirmation_token(
     }
 
     let secret_key = {
-        if settings.secret.secret_key.as_bytes().len() > 32 {
+        if settings.secret.secret_key.len() > 32 {
             warn!(
                 "The secret key is longer than 32 bytes: {}. It will be truncated to 32 bytes",
-                settings.secret.secret_key.as_bytes().len()
+                settings.secret.secret_key.len()
             );
             &settings.secret.secret_key.as_bytes()[0..32]
         } else {
