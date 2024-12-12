@@ -5,6 +5,8 @@ use actix_web::{get, HttpResponse, Responder};
 use askama::Template;
 use tracing::{error, info, instrument};
 
+use super::adrian::school::Grade;
+
 #[derive(Template)]
 #[template(path = "index.html")]
 pub struct Index<'a> {
@@ -40,6 +42,15 @@ pub struct EmailPage {
     pub domain: String,
     pub expiration_time: String,
     pub exact_time: String,
+}
+
+#[derive(Template)]
+#[template(path = "adrian.html")]
+pub struct AdrianLanding {
+    pub title: String,
+    pub name: String,
+    pub age: u8,
+    pub grade: Grade,
 }
 
 #[get("/favicon")]
