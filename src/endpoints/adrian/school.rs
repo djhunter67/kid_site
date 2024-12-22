@@ -16,7 +16,7 @@ use crate::models::mongo::MongoRepo;
     target = "aj_studying",
     skip(data, client)
 )]
-pub async fn grades(
+pub async fn grades_update(
     data: web::Json<Grade>,
     client: web::Data<Database>,
 ) -> Result<HttpResponse, Error> {
