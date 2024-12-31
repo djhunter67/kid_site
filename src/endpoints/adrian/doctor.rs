@@ -30,11 +30,11 @@ pub async fn doctor_data(
     let grade = DoctorData {
         title: "Doctor Data",
         age: "Kid age",
-        name: &settings.doctor.name.clone(),
-        email: &settings.doctor.email.clone(),
-        phone: &settings.doctor.phone.clone(),
-        address: &settings.doctor.address.clone(),
-        speciality: &settings.doctor.speciality.clone(),
+        name: &settings.doctor.name,
+        email: &settings.doctor.email,
+        phone: &settings.doctor.phone,
+        address: &settings.doctor.address,
+        speciality: &settings.doctor.speciality,
     };
 
     let return_template = grade.render().expect("Failed to render template");

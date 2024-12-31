@@ -21,3 +21,10 @@ email:
   host: "smtp.gmail.com"
   host_user: ""
   host_user_password: ""
+
+doctor:
+  name: "the good doctor"
+  email: "good_doctor@email.com"
+  phone: "(954) 555-6574"
+  address: "health dr., FL"
+  speciality: "general practitoner"

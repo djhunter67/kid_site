@@ -1,11 +1,16 @@
-use std::env;
+use std::{
+    convert::Infallible,
+    env,
+    future::{ready, Ready},
+};
 
+use actix_web::{web::Data, FromRequest, HttpRequest};
 use mongodb::options::ClientOptions;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tracing::{info, instrument, warn};
 
 /// Global setting for exposing all preconfigured variables
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct Settings {
     pub application: Application,
     pub debug: bool,
@@ -22,24 +27,25 @@ impl FromRequest for Settings {
 
     type Future = Ready<Result<Self, Self::Error>>;
 
-    type Config = ();
-
     #[instrument(
         name = "Settings from request",
         level = "info",
         target = "kid_data",
         skip(req)
     )]
-    fn from_request(req: &Request, _: &mut Self::Config) -> Self::Future {
-        let settings = req
-            .app_data::<Data<Settings>>()
-            .expect("Settings not found in the request")
-            .clone();
-        ready(Ok(settings))
+    fn from_request(req: &HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
+        let app_data = req.app_data::<Data<Self>>();
+        let settings = app_data.expect("Settings not found in the request").clone();
+        let var_name = settings.into_inner().as_ref().clone();
+        ready(Ok(var_name))
+    }
+
+    fn extract(req: &actix_web::HttpRequest) -> Self::Future {
+        Self::from_request(req, &mut actix_web::dev::Payload::None)
     }
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct Doctor {
     pub name: String,
     pub email: String,
@@ -48,14 +54,14 @@ pub struct Doctor {
     pub speciality: String,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct Secret {
     pub secret_key: String,
     pub token_expiration: i64,
     pub hmac_secret: String,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct Email {
     pub host: String,
     pub host_user: String,
@@ -63,7 +69,7 @@ pub struct Email {
 }
 
 /// Redis setting for the entire application
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct Redis {
     pub url: String,
     pub pool_max_open: u64,
@@ -73,7 +79,7 @@ pub struct Redis {
 }
 
 /// Mongo setting for the entire application
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct Mongo {
     pub username: String,
     pub password: String,
@@ -87,7 +93,7 @@ pub struct Mongo {
 /// Application's specific settings to expose `port`,
 /// `host`, `protocol`, and possible URL of the application
 /// during and after development
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Clone)]
 pub struct Application {
     pub port: u16,
     pub host: String,

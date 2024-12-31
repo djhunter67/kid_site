@@ -64,7 +64,7 @@ fn run(
     info!("Established secondary connection pool");
 
     let redis_pool = Data::new(redis_pool);
-    let settings = Data::new(settings);
+    let setters = Data::new(settings);
 
     let _cors_middleware = Cors::default()
         .allowed_origin("http://localhost:8099")
@@ -79,7 +79,7 @@ fn run(
     let server = HttpServer::new(move || {
         App::new()
             // .wrap(cors_middleware)
-            .wrap(if settings.debug {
+            .wrap(if setters.debug {
                 warn!("Debug mode");
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_http_only(true)
@@ -96,7 +96,7 @@ fn run(
             .wrap(middleware::Logger::default())
             .app_data(mongo_pool.clone())
             .app_data(redis_pool.clone())
-            .app_data(settings.clone())
+            .app_data(setters.clone())
             .service(favicon)
             .service(stylesheet)
             .service(source_map)
