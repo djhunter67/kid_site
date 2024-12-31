@@ -108,6 +108,7 @@ fn run(
             .service(registration)
             .service(register)
             .service(scope("/adrian").service(grades))
+            .service(scope("/corbin").service(grades))
             .service(
                 scope("/v1")
                     .service(create)

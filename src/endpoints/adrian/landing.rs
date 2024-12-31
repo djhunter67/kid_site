@@ -8,10 +8,10 @@ use crate::endpoints::{adrian::school::Grade, templates::AdrianLanding};
 /// All things regarding grade, teachers, classes, and pictures
 
 #[get("/main")]
-#[instrument(name = "Adrian", level = "info", target = "aj_studying", skip(client))]
+#[instrument(name = "Adrian", level = "info", target = "aj_studying", skip(_client))]
 pub async fn grades(
     // data: web::Json<Grade>,
-    client: web::Data<Database>,
+    _client: web::Data<Database>,
 ) -> Result<HttpResponse, Error> {
     // let conn = MongoRepo::new(&client.as_ref().to_owned());
 

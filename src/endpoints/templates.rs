@@ -53,6 +53,15 @@ pub struct AdrianLanding {
     pub grade: Grade,
 }
 
+#[derive(Template)]
+#[template(path = "corbin.html")]
+pub struct CorbinLanding {
+    pub title: String,
+    pub name: String,
+    pub age: u8,
+    pub grade: Grade,
+}
+
 #[get("/favicon")]
 #[instrument(name = "Favicon", level = "info", target = "aj_studying")]
 async fn favicon() -> impl Responder {

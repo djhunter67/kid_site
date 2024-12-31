@@ -40,11 +40,11 @@ pub fn render_error<'a>(
         message,
     };
 
-    warn!("Error Page error: {error}");
+    // warn!("Error Page error: {error}");
 
     let error_template = error.render().expect("Failed to render error page.");
 
-    HttpResponse::build(status)
+    HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(error_template)
 }

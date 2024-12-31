@@ -5,11 +5,11 @@
 
 {% block individual_page_contents %}
 <section id="card_container">
-  <div id="card_container__adrian" class="education_card">
-    <h2>ADRIAN</h2>    
+  <div id="card_container__corbin" class="adrian_card">
+    <h2>DENTAL</h2>    
     <a
       id="card_container__english__button"
-      hx-get="/adrian/main"
+      hx-get="/corbin/main"
       hx-push-url="true"
       hx-swap="outerHTML"
       hx-target="#template_pages"
@@ -17,12 +17,12 @@
       <img src="/english_image" alt="English image"/>
     </a>
   </div>
-  <div id="card_container__corbin" class="education_card">
-    <h2>CORBIN</h2>
+  <div id="card_container__corbin" class="adrian_card">
+    <h2>DOCTOR</h2>
     <a
       id="card_container__science__button"
       hx-get="/corbin/main"
-      hx-push-url="true"
+      hx-push-url="true";
       hx-swap="outerHTML"
       hx-target="#template_pages">
       <img src="/science_image" alt="Science image"/>
