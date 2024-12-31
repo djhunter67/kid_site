@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %} {{ title }} {% endblock %}
+{% block head %}
+{% endblock %}
+
+{% block individual_page_contents %}
+<section id="doctor">
+  <div id="doctor__head">
+    <div id="doctor__head__doctor">
+      <div class="headshot">
+	<img src="" alt="doctor's headshot"/> 
+      </div>
+      <div class="headshot_info">
+	<h2>{{ name }}</h2>
+	<p>{{ speciality }}</p>
+	<p>{{ email }}</p>
+	<p>{{ phone }}</p>
+	<p>{{ address }}</p>
+      </div>
+    </div>
+    <div id="doctor__head__child">
+      <div class="headshot">
+	<img src="" alt="childs headshot"/>
+      </div>
+      <div class="headshot_info">
+	<h2>{{ age }}</h2>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{% call super() %} {% endblock %}

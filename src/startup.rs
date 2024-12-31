@@ -16,6 +16,7 @@ use tracing::{debug, error, info, warn};
 
 use crate::endpoints::adrian::landing::adrian;
 use crate::endpoints::corbin::landing::corbin;
+use crate::endpoints::images::{dental_image, doctor_image};
 use crate::endpoints::index::index;
 use crate::{
     endpoints::{
@@ -49,7 +50,7 @@ fn run(
     info!("Processed DB connection pool for distribution");
 
     // Redis connection pool
-    let cfg = deadpool_redis::Config::from_url(settings.redis.url);
+    let cfg = deadpool_redis::Config::from_url(settings.clone().redis.url);
     let redis_pool = match cfg.create_pool(Some(deadpool_redis::Runtime::Tokio1)) {
         Ok(pool) => pool,
         Err(err) => {
@@ -63,6 +64,7 @@ fn run(
     info!("Established secondary connection pool");
 
     let redis_pool = Data::new(redis_pool);
+    let settings = Data::new(settings);
 
     let _cors_middleware = Cors::default()
         .allowed_origin("http://localhost:8099")
@@ -94,6 +96,7 @@ fn run(
             .wrap(middleware::Logger::default())
             .app_data(mongo_pool.clone())
             .app_data(redis_pool.clone())
+            .app_data(settings.clone())
             .service(favicon)
             .service(stylesheet)
             .service(source_map)
@@ -102,6 +105,8 @@ fn run(
             .service(english_image)
             .service(science_image)
             .service(math_image)
+            .service(dental_image)
+            .service(doctor_image)
             .service(social_studies_image)
             .service(login)
             .service(index)

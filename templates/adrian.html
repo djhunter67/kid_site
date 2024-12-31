@@ -5,35 +5,35 @@
 
 {% block individual_page_contents %}
 <section id="card_container">
-  <div id="card_container__adrian" class="adrian_card">
+  <div id="card_container__adrian" class="child_card">
     <h2>SCHOOL</h2>    
     <a
       id="card_container__english__button"
-      hx-get="/adrian/main"
+      hx-get="/school_logs/adrian"
       hx-swap="outerHTML"
       hx-target="#template_pages"
       >
       <img src="/english_image" alt="English image"/>
     </a>
   </div>
-  <div id="card_contain__math" class="adrian_card">
+  <div id="card_contain__math" class="child_card">
     <h2>DENTAL</h2>
     <a
       id="card_container__math__button"
-      hx-get="/education/math"
+      hx-get="/dental_logs/adrian"
       hx-swap="outerHTML"
       hx-target="#template_pages">
-      <img src="/dental_image" alt="Dental image"/>
+      <img src="/dental_image" alt="Dental image" height="200px" width="200px"/>
     </a>
   </div>
-  <div id="card_container__history" class="adrian_card">
+  <div id="card_container__doctor" class="child_card">
     <h2>DOCTOR</h2>
     <a
-      id="card_container__history__button"
-      hx-get="/education/social_studies"
+      id="card_container__doctor__button"
+      hx-get="/doctor_logs/adrian"
       hx-swap="outerHTML"
       hx-target="#template_pages">
-      <img src="/social_studies_image" alt="Social Studies image"/>
+      <img src="/doctor_image" alt="Doctor image" height="200px" width="200px"/>
     </a>
   </div>
 </section>

@@ -5,27 +5,27 @@
 
 {% block individual_page_contents %}
 <section id="card_container">
-  <div id="card_container__corbin" class="adrian_card">
+  <div id="card_container__corbin" class="child_card">
     <h2>DENTAL</h2>    
     <a
-      id="card_container__english__button"
-      hx-get="/corbin/main"
+      id="card_container__dental__button"
+      hx-get="/dental_logs/corbin"
       hx-push-url="true"
       hx-swap="outerHTML"
       hx-target="#template_pages"
       >
-      <img src="/english_image" alt="English image"/>
+      <img src="/dental_image" alt="dental image" height="200px" width="200px"/>
     </a>
   </div>
-  <div id="card_container__corbin" class="adrian_card">
+  <div id="card_container__corbin" class="child_card">
     <h2>DOCTOR</h2>
     <a
-      id="card_container__science__button"
-      hx-get="/corbin/main"
+      id="card_container__doctor__button"
+      hx-get="/doctor_logs/corbin"
       hx-push-url="true";
       hx-swap="outerHTML"
       hx-target="#template_pages">
-      <img src="/science_image" alt="Science image"/>
+      <img src="/doctor_image" alt="Doctor image" height="200px" width="200px"/>
     </a>      
   </div>
 </section>

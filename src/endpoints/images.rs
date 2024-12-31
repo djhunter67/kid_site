@@ -73,3 +73,17 @@ async fn dental_image() -> Result<NamedFile, actix_web::Error> {
         }
     }
 }
+
+#[get("/doctor_image")]
+#[instrument(name = "Doctor image", level = "info", target = "kid_data")]
+async fn doctor_image() -> Result<NamedFile, actix_web::Error> {
+    info!("Serving doctor.jpg");
+    let path: PathBuf = ["static", "imgs", "doctor.gif"].iter().collect();
+    match NamedFile::open(path) {
+        Ok(file) => Ok(file),
+        Err(err) => {
+            error!("Error opening file: {err:#?}");
+            Err(actix_web::error::ErrorInternalServerError(err))
+        }
+    }
+}

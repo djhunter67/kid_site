@@ -62,6 +62,32 @@ pub struct CorbinLanding {
     pub grade: Grade,
 }
 
+#[derive(Template)]
+#[template(path = "doctor.html")]
+pub struct DoctorData<'a> {
+    pub title: &'a str,
+    pub age: &'a str,
+    pub name: &'a str,
+    pub email: &'a str,
+    pub phone: &'a str,
+    pub address: &'a str,
+    pub speciality: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "dentist.html")]
+pub struct Dental<'a> {
+    pub title: &'a str,
+    pub name: &'a str,
+}
+
+#[derive(Template)]
+#[template(path = "school.html")]
+pub struct School<'a> {
+    pub title: &'a str,
+    pub name: &'a str,
+}
+
 #[get("/favicon")]
 #[instrument(name = "Favicon", level = "info", target = "kid_data")]
 async fn favicon() -> impl Responder {
