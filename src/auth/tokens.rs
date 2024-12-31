@@ -16,7 +16,7 @@ use crate::{
     types::tokens::ConfirmationToken,
 };
 
-const SESSION_KEY_PREFIX: &str = "aj_studying_{}";
+const SESSION_KEY_PREFIX: &str = "kid_data_{}";
 
 /// # Result
 ///   - Ok(String): A token has been issued successfully
@@ -32,7 +32,7 @@ const SESSION_KEY_PREFIX: &str = "aj_studying_{}";
 #[instrument(
     name = "Issue confirmation token",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(redis_connection, is_for_password_change)
 )]
 pub async fn issue_confirmation_token(
@@ -191,7 +191,7 @@ pub async fn issue_confirmation_token(
 #[instrument(
     name = "Verify confirmation token",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(redis_connection, is_password)
 )]
 pub async fn verify_confirmation_token_pasetor(

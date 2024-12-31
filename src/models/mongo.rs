@@ -48,7 +48,7 @@ pub struct User {
 // }
 
 impl From<CreateNewUser> for User {
-    #[instrument(name = "Create user", level = "debug", target = "aj_studying", fields(id = %new_user.email))]
+    #[instrument(name = "Create user", level = "debug", target = "kid_data", fields(id = %new_user.email))]
     fn from(new_user: CreateNewUser) -> Self {
         debug!("Extracting user data from the new user");
         Self {
@@ -68,7 +68,7 @@ impl Display for User {
     #[instrument(
         name = "Display user",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, f),
 	fields(
 	    id = %self.email
@@ -92,7 +92,7 @@ impl MongoRepo {
     #[instrument(
         name = "Create new MongoRepo",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(collection)
     )]
     pub fn new(collection: &Database) -> Self {
@@ -110,7 +110,7 @@ impl MongoRepo {
     #[instrument(
         name = "Create user",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, new_user)
     )]
     pub async fn create_user(&self, new_user: CreateNewUser) -> Result<InsertOneResult, Error> {
@@ -138,7 +138,7 @@ impl MongoRepo {
     #[instrument(
         name = "Get user",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, object_id, email)
     )]
     pub async fn get_user(
@@ -185,7 +185,7 @@ impl MongoRepo {
     #[instrument(
         name = "Get active user",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, email)
     )]
     pub async fn get_active_user(&self, email: &str) -> Result<User, Error> {
@@ -225,7 +225,7 @@ impl MongoRepo {
     #[instrument(
         name = "Update user",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, object_id, new_user),
 	fields(user_to_update = %new_user.email)
     )]
@@ -273,7 +273,7 @@ impl MongoRepo {
     #[instrument(
         name = "Delete user",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, id)
     )]
     pub async fn delete_user(&self, id: String) -> Result<DeleteResult, Error> {
@@ -315,7 +315,7 @@ impl MongoRepo {
     #[instrument(
         name = "Get all users",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self)
     )]
     pub async fn get_all_users(&self) -> Result<Vec<User>, Error> {
@@ -368,7 +368,7 @@ impl MongoRepo {
     #[instrument(
         name = "Save cookie",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, user_id, cookie)
     )]
     pub async fn save_cookie(
@@ -421,7 +421,7 @@ impl MongoRepo {
     #[instrument(
         name = "Get cookie",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, cookie)
     )]
     pub async fn get_cookie(&self, cookie: Cookie<'_>) -> Result<User, Error> {
@@ -460,7 +460,7 @@ impl MongoRepo {
     #[instrument(
         name = "Delete cookie",
         level = "debug",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self, cookie)
     )]
     pub async fn delete_cookie(&self, cookie: Cookie<'_>) -> Result<DeleteResult, Error> {

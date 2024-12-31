@@ -33,7 +33,7 @@ pub struct CreateNewUser {
 }
 
 #[get("/registration")]
-#[instrument(name = "Registration page", level = "info", target = "aj_studying")]
+#[instrument(name = "Registration page", level = "info", target = "kid_data")]
 pub async fn registration() -> HttpResponse {
     info!("Rendering registration page");
     let template = RegisterPage {
@@ -72,7 +72,7 @@ pub async fn registration() -> HttpResponse {
 #[instrument(
     name = "Register user",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(pool, redis_pool, new_user),
     fields(
 	email = %new_user.email,
@@ -161,7 +161,7 @@ struct Parameters {
 #[instrument(
     name = "Register confirm",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(pool, redis_pool, parameters)
 )]
 pub async fn confirm(
@@ -244,7 +244,7 @@ pub async fn confirm(
 #[instrument(
     name = "Activate new user",
     level = "debug",
-    target = "aj_studying",
+    target = "kid_data",
     skip(pool, user_id)
 )]
 async fn activate_new_user(

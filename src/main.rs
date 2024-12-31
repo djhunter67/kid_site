@@ -1,4 +1,4 @@
-use aj_studying::{settings, startup::Application, telemetry};
+use kid_data::{settings, startup::Application, telemetry};
 use std::io;
 use tracing::{info, warn};
 

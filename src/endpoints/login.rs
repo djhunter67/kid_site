@@ -23,7 +23,7 @@ use crate::{
 };
 
 #[get("/")]
-#[instrument(name = "Login page", level = "info", target = "aj_studying", skip(_db))]
+#[instrument(name = "Login page", level = "info", target = "kid_data", skip(_db))]
 pub async fn login(_db: Data<Database>) -> HttpResponse {
     info!("Rendering login page");
 
@@ -46,7 +46,7 @@ pub async fn login(_db: Data<Database>) -> HttpResponse {
 #[instrument(
     name = "Login user",
     level = "debug",
-    target = "aj_studying",
+    target = "kid_data",
     skip(pool, user, session)
 )]
 pub async fn login_user(
@@ -137,7 +137,7 @@ pub async fn login_user(
 #[instrument(
     name = "Logout user",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(session)
 )]
 pub async fn logout(session: Session) -> HttpResponse {
@@ -162,7 +162,7 @@ pub async fn logout(session: Session) -> HttpResponse {
 #[instrument(
     name = "Get user ID from session",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(session)
 )]
 fn session_user_id(session: &Session) -> Result<ObjectId, String> {

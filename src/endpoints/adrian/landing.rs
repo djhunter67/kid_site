@@ -8,7 +8,7 @@ use crate::endpoints::{adrian::school::Grade, templates::AdrianLanding};
 /// All things regarding grade, teachers, classes, and pictures
 
 #[get("/adrian")]
-#[instrument(name = "Adrian", level = "info", target = "aj_studying", skip(_client))]
+#[instrument(name = "Adrian", level = "info", target = "kid_data", skip(_client))]
 pub async fn adrian(
     // data: web::Json<Grade>,
     _client: web::Data<Database>,

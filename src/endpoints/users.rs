@@ -14,7 +14,7 @@ use crate::{
 };
 
 #[post("/user")]
-#[instrument(name = "Create user", level = "debug", target = "aj_studying", skip(client), fields(id = %new_user.email))]
+#[instrument(name = "Create user", level = "debug", target = "kid_data", skip(client), fields(id = %new_user.email))]
 pub async fn create(client: Data<Database>, new_user: Json<CreateNewUser>) -> HttpResponse {
     info!("Creating user API endpoint");
     let db = MongoRepo::new(&client.as_ref().to_owned());
@@ -33,7 +33,7 @@ pub async fn create(client: Data<Database>, new_user: Json<CreateNewUser>) -> Ht
 }
 
 #[get("/user/{id}")]
-#[instrument(name = "Get user", level = "info", target = "aj_studying", skip(client, path), fields(id = %path.email))]
+#[instrument(name = "Get user", level = "info", target = "kid_data", skip(client, path), fields(id = %path.email))]
 pub async fn get_user(client: Data<Database>, path: Path<User>) -> HttpResponse {
     info!("Getting user API endpoint");
     let db = MongoRepo::new(&client.as_ref().to_owned());
@@ -55,7 +55,7 @@ pub async fn get_user(client: Data<Database>, path: Path<User>) -> HttpResponse 
 #[instrument(
     name = "Update user",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(client, path, new_user)
 )]
 pub async fn update_user(
@@ -116,7 +116,7 @@ pub async fn update_user(
 #[instrument(
     name = "Delete user",
     level = "debug",
-    target = "aj_studying",
+    target = "kid_data",
     skip(client, path)
 )]
 pub async fn delete_user(client: Data<Database>, path: Path<String>) -> HttpResponse {
@@ -145,7 +145,7 @@ pub async fn delete_user(client: Data<Database>, path: Path<String>) -> HttpResp
 #[instrument(
     name = "Get all users",
     level = "debug",
-    target = "aj_studying",
+    target = "kid_data",
     skip(client)
 )]
 pub async fn get_users(client: Data<Database>) -> HttpResponse {

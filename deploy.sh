@@ -3,7 +3,7 @@
 readonly DESTINATION=$1
 readonly DEST_PATH="/home/ripley/app"
 readonly TARGET_ARCH=aarch64-unknown-linux-gnu
-readonly SOURCE_PATH=target/${TARGET_ARCH}/release/aj_studying
+readonly SOURCE_PATH=target/${TARGET_ARCH}/release/kid_data
 
 
 # Look in the target/release/ directory for the binary and that is the name of the application
@@ -78,21 +78,21 @@ else
     # Create the service file
     cat > $APP_NAME.service <<EOF
 [Unit]
-Description=aj_studying
+Description=kid_data
 After=network.target
 
 [Service]
 Type=simple
 User=ripley
 WorkingDirectory=/home/ripley/app
-ExecStart=/home/ripley/app/aj_studying
+ExecStart=/home/ripley/app/kid_data
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    SERVICE_FILE="$DEST_PATH/aj_studying.service"
+    SERVICE_FILE="$DEST_PATH/kid_data.service"
 
     # Copy the service file to the server
     rsync -Pauvht --stats $APP_NAME.service $DESTINATION:~/ 2>&1 > /dev/null
@@ -183,7 +183,7 @@ fi
 # readonly TARGET_HOST=$USER_NAME@$IP
 # readonly TARGET_PATH=/home/$USER_NAME
 # readonly TARGET_ARCH=aarch64-unknown-linux-gnu
-# readonly SOURCE_PATH=./target/${TARGET_ARCH}/release/aj_studying
+# readonly SOURCE_PATH=./target/${TARGET_ARCH}/release/kid_data
 
 # cross build --release --target=${TARGET_ARCH}
 # rsync -Pauvht --stats ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH}

@@ -14,7 +14,7 @@ use tracing::{error, instrument, warn};
 #[instrument(
     name = "Password hashing",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(password)
 )]
 pub async fn pw(password: String) -> Result<String, password_hash::Error> {
@@ -51,7 +51,7 @@ pub async fn pw(password: String) -> Result<String, password_hash::Error> {
 #[instrument(
     name = "Password verification",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(registered_creds, user_attempt)
 )]
 pub async fn verify_pw(

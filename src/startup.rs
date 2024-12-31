@@ -32,7 +32,7 @@ use crate::{
 #[instrument(
     name = "main runner",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(listener, db_pool, settings)
 )]
 fn run(
@@ -143,7 +143,7 @@ impl Application {
     #[instrument(
         name = "Application builder",
         level = "info",
-        target = "aj_studying",
+        target = "kid_data",
         skip(settings, db_pool)
     )]
     pub async fn build(
@@ -184,7 +184,7 @@ impl Application {
     #[instrument(
         name = "Application runner",
         level = "info",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self)
     )]
     pub async fn run_until_stopped(self) -> Result<(), std::io::Error> {
@@ -202,7 +202,7 @@ impl Application {
 #[instrument(
     name = "Connection pool getter",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(settings)
 )]
 async fn get_connection_pool(settings: &settings::Mongo) -> mongodb::Database {

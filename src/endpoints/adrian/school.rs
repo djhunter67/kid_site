@@ -13,7 +13,7 @@ use crate::models::mongo::MongoRepo;
 #[instrument(
     name = "Adrian",
     level = "info",
-    target = "aj_studying",
+    target = "kid_data",
     skip(data, client)
 )]
 pub async fn grades_update(

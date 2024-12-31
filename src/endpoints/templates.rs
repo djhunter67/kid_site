@@ -63,7 +63,7 @@ pub struct CorbinLanding {
 }
 
 #[get("/favicon")]
-#[instrument(name = "Favicon", level = "info", target = "aj_studying")]
+#[instrument(name = "Favicon", level = "info", target = "kid_data")]
 async fn favicon() -> impl Responder {
     info!("Serving favicon");
     let file = include_str!("../../static/imgs/education.svg");
@@ -71,7 +71,7 @@ async fn favicon() -> impl Responder {
 }
 
 #[get("/stylesheet")]
-#[instrument(name = "Stylesheet", level = "info", target = "aj_studying")]
+#[instrument(name = "Stylesheet", level = "info", target = "kid_data")]
 async fn stylesheet() -> impl Responder {
     info!("Serving stylesheet");
     let file = include_str!("../../static/css/style.css");
@@ -79,7 +79,7 @@ async fn stylesheet() -> impl Responder {
 }
 
 #[get("/style.css.map")]
-#[instrument(name = "Source map", level = "info", target = "aj_studying")]
+#[instrument(name = "Source map", level = "info", target = "kid_data")]
 async fn source_map() -> impl Responder {
     info!("Serving source map");
     let file = include_str!("../../static/css/style.css.map");
@@ -89,7 +89,7 @@ async fn source_map() -> impl Responder {
 }
 
 #[get("/htmx")]
-#[instrument(name = "Htmx", level = "info", target = "aj_studying")]
+#[instrument(name = "Htmx", level = "info", target = "kid_data")]
 async fn htmx() -> Result<NamedFile, actix_web::Error> {
     info!("Serving htmx.min.js");
     let path: PathBuf = ["static", "assets", "htmx", "htmx.min.js"].iter().collect();
@@ -103,7 +103,7 @@ async fn htmx() -> Result<NamedFile, actix_web::Error> {
 }
 
 #[get("/response-targets")]
-#[instrument(name = "Response targets", level = "info", target = "aj_studying")]
+#[instrument(name = "Response targets", level = "info", target = "kid_data")]
 async fn response_targets() -> Result<NamedFile, actix_web::Error> {
     info!("Serving response-targets.js");
     let pash: PathBuf = ["static", "assets", "htmx", "response-targets.js"]

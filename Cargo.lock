@@ -313,38 +313,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "aj_studying"
-version = "0.1.0"
-dependencies = [
- "actix-cors",
- "actix-files",
- "actix-session",
- "actix-web",
- "argon2",
- "askama",
- "async-std",
- "chrono",
- "config",
- "deadpool-redis",
- "dotenv",
- "hex",
- "lazy_static",
- "lettre",
- "mongodb",
- "openssl",
- "pasetors",
- "rand",
- "reqwest",
- "rstest",
- "serde",
- "serde_json",
- "sha2",
- "tracing",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
 name = "alloc-no-stdlib"
 version = "2.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2059,6 +2027,38 @@ dependencies = [
  "pest",
  "pest_derive",
  "serde",
+]
+
+[[package]]
+name = "kid_data"
+version = "0.1.0"
+dependencies = [
+ "actix-cors",
+ "actix-files",
+ "actix-session",
+ "actix-web",
+ "argon2",
+ "askama",
+ "async-std",
+ "chrono",
+ "config",
+ "deadpool-redis",
+ "dotenv",
+ "hex",
+ "lazy_static",
+ "lettre",
+ "mongodb",
+ "openssl",
+ "pasetors",
+ "rand",
+ "reqwest",
+ "rstest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

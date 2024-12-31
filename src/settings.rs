@@ -76,7 +76,7 @@ impl Mongo {
     #[instrument(
         name = "MongoDB options",
         level = "info",
-        target = "aj_studying",
+        target = "kid_data",
         skip(self)
     )]
     pub async fn mongo_options(&self) -> ClientOptions {
@@ -120,7 +120,7 @@ impl TryFrom<String> for Environment {
     #[instrument(
         name = "Environment conversion",
         level = "info",
-        target = "aj_studying",
+        target = "kid_data",
         skip(s)
     )]
     fn try_from(s: String) -> Result<Self, Self::Error> {
@@ -155,7 +155,7 @@ impl TryFrom<String> for Environment {
 /// followed by "__" separator,  and then the variable.
 /// # Example
 ///   - ``APP__APPLICATION_PORT=5001`` for "port" to be set as "5001"
-#[instrument(name = "Get settings", level = "info", target = "aj_studying")]
+#[instrument(name = "Get settings", level = "info", target = "kid_data")]
 pub fn get() -> Result<Settings, config::ConfigError> {
     info!("Getting the system config settings");
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");

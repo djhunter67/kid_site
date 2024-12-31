@@ -63,7 +63,7 @@ async fn social_studies_image() -> Result<NamedFile, actix_web::Error> {
 #[get("/dental_image")]
 #[instrument(name = "Dental image", level = "info", target = "kid_data")]
 async fn dental_image() -> Result<NamedFile, actix_web::Error> {
-    info!("Serving math_image.png");
+    info!("Serving dental_img.gif");
     let path: PathBuf = ["static", "imgs", "dental_img.gif"].iter().collect();
     match NamedFile::open(path) {
         Ok(file) => Ok(file),
