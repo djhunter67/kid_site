@@ -7,9 +7,9 @@ use crate::endpoints::{adrian::school::Grade, templates::CorbinLanding};
 
 /// All things regarding grade, teachers, classes, and pictures
 
-#[get("/main")]
+#[get("/corbin")]
 #[instrument(name = "Corbin", level = "info", target = "aj_studying", skip(_client))]
-pub async fn grades(
+pub async fn corbin(
     // data: web::Json<Grade>,
     _client: web::Data<Database>,
 ) -> Result<HttpResponse, Error> {
