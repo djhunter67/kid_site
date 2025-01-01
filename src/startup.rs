@@ -88,7 +88,7 @@ fn run(
                     .cookie_secure(true)
                     .build()
             } else {
-                // TODO: Add a secure cookie
+                // TODO: Check if the below implementation is a secure cookie
                 warn!("PRODUCTION MODE");
                 SessionMiddleware::new(CookieSessionStore::default(), secret_key.clone())
             })

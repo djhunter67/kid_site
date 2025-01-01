@@ -1,25 +1,28 @@
+use actix_session::Session;
 use actix_web::{get, web, Error, HttpResponse};
 use askama::Template;
 use mongodb::Database;
 use tracing::instrument;
 
-use crate::endpoints::{adrian::school::Grade, templates::CorbinLanding};
+use crate::endpoints::{adrian::school::Grade, login::validate_session, templates::CorbinLanding};
 
 /// All things regarding grade, teachers, classes, and pictures
-
+#[allow(clippy::future_not_send)]
 #[get("/corbin")]
-#[instrument(name = "Corbin", level = "info", target = "kid_data", skip(_client))]
+#[instrument(
+    name = "Corbin",
+    level = "info",
+    target = "kid_data",
+    skip(_client, session)
+)]
 pub async fn corbin(
     // data: web::Json<Grade>,
     _client: web::Data<Database>,
+    session: Session,
 ) -> Result<HttpResponse, Error> {
-    // let conn = MongoRepo::new(&client.as_ref().to_owned());
-
-    // let Ok(grade) = serde_json::from_str::<Grade>(&data.to_string()) else {
-    //     return Ok(HttpResponse::BadRequest().into());
-    // };
-
-    // let res = web::block(move || grade.save(&conn)).await;
+    if let Some(http_resp) = validate_session(session) {
+        return Ok(http_resp);
+    }
 
     let grade = Grade {
         school_level: String::from("Day Care"),

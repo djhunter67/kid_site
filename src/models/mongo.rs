@@ -264,6 +264,41 @@ impl MongoRepo {
         Ok(updated_doc)
     }
 
+    #[instrument(
+        name = "Update activity",
+        level = "debug",
+        target = "kid_data",
+        skip(self, object_id)
+    )]
+    pub async fn toggle_activity(
+        &self,
+        object_id: ObjectId,
+        activiy: bool,
+    ) -> Result<UpdateResult, Error> {
+        info!("Toggle activity endpoint hit");
+        let filter = doc! { "_id": object_id };
+        let new_doc = doc! {
+            "$set": {
+            "is_active": activiy,
+            }
+        };
+
+        let updated_doc = match self.collection.update_one(filter, new_doc).await {
+            Ok(doc) => {
+                debug!("User activity updated");
+                doc
+            }
+            Err(err) => {
+                error!("Failed to update document in collection: {err}");
+                return Err(Error::DeserializationError {
+                    message: "Failed to update document in collection".to_string(),
+                });
+            }
+        };
+
+        Ok(updated_doc)
+    }
+
     /// # Results
     ///   - Returns a `DeleteResult` if the document is successfully deleted from the collection
     /// # Errors

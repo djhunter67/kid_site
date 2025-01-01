@@ -1,40 +1,31 @@
-use actix_session::SessionExt;
-use actix_web::{get, web, Error, HttpRequest, HttpResponse};
+use actix_session::Session;
+use actix_web::{get, web, Error, HttpResponse};
 use askama::Template;
 use mongodb::Database;
 use tracing::{instrument, warn};
 
-use crate::endpoints::{adrian::school::Grade, templates::AdrianLanding};
+use crate::endpoints::{adrian::school::Grade, login::validate_session, templates::AdrianLanding};
 
 /// All things regarding grade, teachers, classes, and pictures
-
+#[allow(clippy::future_not_send)]
 #[get("/adrian")]
 #[instrument(
     name = "Adrian",
     level = "info",
     target = "kid_data",
-    skip(_client, req)
+    skip(_client, session)
 )]
-pub async fn adrian(
-    req: HttpRequest,
-    // data: web::Json<Grade>,
-    _client: web::Data<Database>,
-) -> Result<HttpResponse, Error> {
-    // let conn = MongoRepo::new(&client.as_ref().to_owned());
+pub async fn adrian(session: Session, _client: web::Data<Database>) -> Result<HttpResponse, Error> {
+    // let pool = MongoRepo::new(&client.as_ref().to_owned());
 
-    // let Ok(grade) = serde_json::from_str::<Grade>(&data.to_string()) else {
-    //     return Ok(HttpResponse::BadRequest().into());
-    // };
+    warn!(
+        "Adrian endpont Session entries: {}",
+        session.entries().is_empty()
+    );
 
-    // let res = web::block(move || grade.save(&conn)).await;
-
-    let session = req.get_session();
-
-    warn!("Session Entries: {:#?}", session.entries());
-
-    // if let Ok(username) = session.get::<String>("id") {
-    // warn!("Cookie: {username:#?}");
-    // }
+    if let Some(http_resp) = validate_session(session) {
+        return Ok(http_resp);
+    }
 
     let grade = Grade {
         school_level: String::from("elementary"),

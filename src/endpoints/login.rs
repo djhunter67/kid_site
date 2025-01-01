@@ -92,9 +92,16 @@ pub async fn login_user(
                     Types::UserIdKey,
                     logged_in_user.id.expect("No DB ID found").to_string(),
                 ) {
-                    Ok(()) => info!("`user_id` inserted into session"),
+                    Ok(()) => {
+                        info!("`user_id` inserted into session");
+                        debug!("Changing user Active state to active");
+                        pool.toggle_activity(logged_in_user.id.expect("No ID found"), true)
+                            .await
+                            .expect("User activity not updated");
+                    }
                     Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
                 }
+
                 // match session.insert(types::USER_EMAIL_KEY, logged_in_user.email) {
                 //     Ok(()) => info!("`user_email` inserted into session"),
                 //     Err(err) => error!("`user_email` cannot be inserted into session: {err:#?}"),
@@ -141,14 +148,47 @@ pub async fn login_user(
     name = "Logout user",
     level = "info",
     target = "kid_data",
-    skip(session)
+    skip(session, pool)
 )]
-pub async fn logout(session: Session) -> HttpResponse {
+pub async fn logout(session: Session, pool: Data<Database>) -> HttpResponse {
     info!("Logout endpoint");
     match session_user_id(&session) {
-        Ok(_) => {
+        Ok(user_id) => {
             info!("User retreived from db.");
             session.purge();
+            let pool = MongoRepo::new(&pool.as_ref().to_owned());
+            match pool.toggle_activity(user_id, false).await {
+                Ok(_) => info!("user activity updated"),
+                Err(err) => {
+                    if pool
+                        .get_user(Some(user_id), None)
+                        .await
+                        .expect("User not found")
+                        .is_active
+                        .expect("No activity available")
+                    {
+                        let template = LoginPage {
+                            title: "Child Data",
+                        };
+
+                        let body = match template.render() {
+                            Ok(body) => body,
+                            Err(err) => {
+                                error!("Failed to render login page: {err:#?}",);
+                                return HttpResponse::InternalServerError().finish();
+                            }
+                        };
+                        info!("Login page rendered successfully");
+
+                        return HttpResponse::Ok().content_type("text/html").body(body);
+                    }
+                    return render_error(
+                        StatusCode::NO_CONTENT,
+                        "No user ID found in cookie data",
+                        Some(&format!("Logout Error: {err}")),
+                    );
+                }
+            }
             let template = LoginPage {
                 title: "Child Data",
             };
@@ -195,4 +235,30 @@ fn session_user_id(session: &Session) -> Result<ObjectId, String> {
         Ok(user_id) => user_id.map_or_else(|| Err("You are not authenticated".to_string()), Ok),
         Err(err) => Err(err.to_string()),
     }
+}
+
+#[instrument(
+    name = "Send to login page if no cookie",
+    level = "info",
+    target = "kid_data",
+    skip(session)
+)]
+pub fn validate_session(session: Session) -> Option<HttpResponse> {
+    if session.entries().is_empty() {
+        let template = LoginPage {
+            title: "Not logged in",
+        };
+
+        let body = match template.render() {
+            Ok(body) => body,
+            Err(err) => {
+                error!("Failed to render login page: {err:#?}",);
+                return Some(HttpResponse::InternalServerError().finish());
+            }
+        };
+        info!("Login page rendered successfully");
+
+        return Some(HttpResponse::Ok().content_type("text/html").body(body));
+    }
+    None
 }
