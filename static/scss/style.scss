@@ -21,8 +21,27 @@ body {
     width: 100dvw;
     margin-inline: auto;
     display: flex;
-    justify-items: center;
+    justify-content: center;
     align-items: center;
+    flex-direction: column;
+    margin: auto;
+    gap: 3rem;
+
+    nav {
+	grid-area: nav;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	background-color: hsl(322, 70%, 30%);
+	border-radius: 30px;
+	padding: 1rem 2rem;
+	margin: 1rem;
+	cursor: pointer;
+	position: absolute;
+	top: 0;
+	right: 0;
+    }
 
     img {
 	max-width: 100%;

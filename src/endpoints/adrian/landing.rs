@@ -1,15 +1,22 @@
-use actix_web::{get, web, Error, HttpResponse};
+use actix_session::SessionExt;
+use actix_web::{get, web, Error, HttpRequest, HttpResponse};
 use askama::Template;
 use mongodb::Database;
-use tracing::instrument;
+use tracing::{instrument, warn};
 
 use crate::endpoints::{adrian::school::Grade, templates::AdrianLanding};
 
 /// All things regarding grade, teachers, classes, and pictures
 
 #[get("/adrian")]
-#[instrument(name = "Adrian", level = "info", target = "kid_data", skip(_client))]
+#[instrument(
+    name = "Adrian",
+    level = "info",
+    target = "kid_data",
+    skip(_client, req)
+)]
 pub async fn adrian(
+    req: HttpRequest,
     // data: web::Json<Grade>,
     _client: web::Data<Database>,
 ) -> Result<HttpResponse, Error> {
@@ -20,6 +27,14 @@ pub async fn adrian(
     // };
 
     // let res = web::block(move || grade.save(&conn)).await;
+
+    let session = req.get_session();
+
+    warn!("Session Entries: {:#?}", session.entries());
+
+    // if let Ok(username) = session.get::<String>("id") {
+    // warn!("Cookie: {username:#?}");
+    // }
 
     let grade = Grade {
         school_level: String::from("elementary"),

@@ -16,18 +16,28 @@ use crate::{
     endpoints::{
         health::render_error,
         structure::Login,
-        templates::{Index, LoginPage},
+        templates::{ErrorPage, Index, LoginPage},
     },
     models::mongo::{MongoRepo, User},
-    types,
+    types::Types,
 };
 
+#[allow(clippy::future_not_send)]
 #[get("/")]
-#[instrument(name = "Login page", level = "info", target = "kid_data", skip(_db))]
-pub async fn login(_db: Data<Database>) -> HttpResponse {
+#[instrument(
+    name = "Login page",
+    level = "info",
+    target = "kid_data",
+    skip(_db, session)
+)]
+pub async fn login(session: Session, _db: Data<Database>) -> HttpResponse {
     info!("Rendering login page");
 
-    let template = LoginPage { title: "Quiz site" };
+    warn!("The Session: {:#?}", session.status());
+
+    let template = LoginPage {
+        title: "Child Data",
+    };
 
     let body = match template.render() {
         Ok(body) => body,
@@ -76,32 +86,25 @@ pub async fn login_user(
         {
             Ok(()) => {
                 info!("User logged in successfully.");
+                debug!("Renewing cookie session");
                 session.renew();
-                // match session.insert(types::USER_ID_KEY, logged_in_user.id) {
-                //     Ok(()) => info!("`user_id` inserted into session"),
-                //     Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
-                // }
+                match session.insert(
+                    Types::UserIdKey,
+                    logged_in_user.id.expect("No DB ID found").to_string(),
+                ) {
+                    Ok(()) => info!("`user_id` inserted into session"),
+                    Err(err) => error!("`user_id` cannot be inserted into session: {err:#?}"),
+                }
                 // match session.insert(types::USER_EMAIL_KEY, logged_in_user.email) {
                 //     Ok(()) => info!("`user_email` inserted into session"),
                 //     Err(err) => error!("`user_email` cannot be inserted into session: {err:#?}"),
                 // }
 
-                match session.insert(
-                    logged_in_user.id.expect("failed to get creds").to_string(),
-                    logged_in_user.id,
-                ) {
-                    Ok(()) => info!("user_id inserted into session"),
-                    Err(err) => error!("user_id cannot be inserted into session: {err:#?}"),
-                }
+                warn!("Session set: {:#?}", session.entries());
 
-                match session.insert(user.email, logged_in_user.email) {
-                    Ok(()) => info!("user_email inserted into session"),
-                    Err(err) => error!("user_email cannot be inserted into session: {err:#?}"),
-                }
-
-                warn!("Session: {:#?}", session.get::<String>("logged_in_user"));
-
-                let template = Index { title: "Quiz site" };
+                let template = Index {
+                    title: "Child Data",
+                };
 
                 let body = template.render().expect("Index template rendering");
 
@@ -146,15 +149,36 @@ pub async fn logout(session: Session) -> HttpResponse {
         Ok(_) => {
             info!("User retreived from db.");
             session.purge();
-            HttpResponse::Ok()
-                .content_type("text/html")
-                .body("<h1>User logged out successfully</h1>")
+            let template = LoginPage {
+                title: "Child Data",
+            };
+
+            let body = match template.render() {
+                Ok(body) => body,
+                Err(err) => {
+                    error!("Failed to render login page: {err:#?}",);
+                    return HttpResponse::InternalServerError().finish();
+                }
+            };
+            info!("Login page rendered successfully");
+
+            HttpResponse::Ok().content_type("text/html").body(body)
         }
         Err(err) => {
             error!("Failed to get user from session: {err:#?}");
-            HttpResponse::BadRequest()
+
+            let error_template = ErrorPage {
+                title: "Child Data",
+                code: 500,
+                message: "Unable to logout user. Please try again.",
+                error: "Internal Server Error",
+            };
+
+            let body = error_template.render().expect("Error template rendering");
+
+            HttpResponse::InternalServerError()
                 .content_type("text/html")
-                .body("<h1>We currently have some issues. Kindly try again and ensure you are logged in.</h1>")
+                .body(body)
         }
     }
 }
@@ -167,7 +191,7 @@ pub async fn logout(session: Session) -> HttpResponse {
 )]
 fn session_user_id(session: &Session) -> Result<ObjectId, String> {
     info!("Retrieving user ID from session");
-    match session.get(types::USER_ID_KEY) {
+    match session.get(&Types::UserIdKey.to_string()) {
         Ok(user_id) => user_id.map_or_else(|| Err("You are not authenticated".to_string()), Ok),
         Err(err) => Err(err.to_string()),
     }

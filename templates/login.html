@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% block title %} {{ title }} {% endblock %}
 {% block head %}
-
 {% endblock %}
 
 {% block individual_page_contents %}
@@ -9,7 +8,7 @@
   <div class="login__container" >
     <h2>Log in</h2>
     <form hx-ext="response-targets">
-      <input type="text" name="email" placeholder="Email" required>
+      <input type="text" name="email" value="test_3@email.com" required>
       <input type="password" name="password" value="123456" placeholder="Password" required>
       <button
 	type="submit"

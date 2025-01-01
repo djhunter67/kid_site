@@ -13,6 +13,15 @@
     {% block head %}{% endblock %}
   </head>
   <body>
+    <nav>
+      <a
+	id="logout"
+	hx-post="/logout"
+	hx-swap="innerHTML"
+	hx-target="body">
+	LOGOUT
+      </a>
+    </nav>
     <div id="template_pages">
       {% block individual_page_contents %}
       {% endblock %}

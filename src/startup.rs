@@ -18,6 +18,7 @@ use crate::endpoints::adrian::landing::adrian;
 use crate::endpoints::corbin::landing::corbin;
 use crate::endpoints::images::{dental_image, doctor_image};
 use crate::endpoints::index::index;
+use crate::endpoints::login::logout;
 use crate::{
     endpoints::{
         health::health_check,
@@ -61,7 +62,7 @@ fn run(
             ));
         }
     };
-    info!("Established secondary connection pool");
+    info!("Established secondary cache db connection pool");
 
     let redis_pool = Data::new(redis_pool);
     let setters = Data::new(settings);
@@ -80,15 +81,15 @@ fn run(
         App::new()
             // .wrap(cors_middleware)
             .wrap(if setters.debug {
-                warn!("Debug mode");
+                warn!("DEBUG MODE");
                 SessionMiddleware::builder(CookieSessionStore::default(), secret_key.clone())
                     .cookie_http_only(true)
-                    .cookie_same_site(actix_web::cookie::SameSite::None)
+                    .cookie_same_site(actix_web::cookie::SameSite::Lax)
                     .cookie_secure(true)
                     .build()
             } else {
                 // TODO: Add a secure cookie
-                warn!("Production mode");
+                warn!("PRODUCTION MODE");
                 SessionMiddleware::new(CookieSessionStore::default(), secret_key.clone())
             })
             .wrap(middleware::Compress::default())
@@ -113,6 +114,7 @@ fn run(
             .service(login_user)
             .service(registration)
             .service(register)
+            .service(logout)
             .service(scope("/child").service(adrian).service(corbin))
             .service(
                 scope("/v1")
