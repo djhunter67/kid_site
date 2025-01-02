@@ -1,6 +1,8 @@
 application:
   port: 8081
 
+debug: true
+
 mongo:
   username: ""
   password: ""

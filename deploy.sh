@@ -1,13 +1,15 @@
 #/usr/bin/env bash
 
+readonly APP_NAME=kid_data
 readonly DESTINATION=$1
 readonly DEST_PATH="/home/ripley/app"
 readonly TARGET_ARCH=aarch64-unknown-linux-gnu
-readonly SOURCE_PATH=target/${TARGET_ARCH}/release/kid_data
+readonly SOURCE_PATH=target/${TARGET_ARCH}/release/$APP_NAME
+
 
 
 # Look in the target/release/ directory for the binary and that is the name of the application
-APP_NAME=$(ls target/$TARGET_ARCH/release/ | head -n 1)
+# APP_NAME=$(ls target/$TARGET_ARCH/release/ | head -n 1)
 
 echo "APP_NAME: $APP_NAME"
 
@@ -26,7 +28,10 @@ echo -e "\e[33mBuilding the Rust application for Release\e[0m"
 cross build --release --target=aarch64-unknown-linux-gnu
 
 echo -e "\e[33mCopying the build files to the server\e[0m"
+sed -i 's/debug: true/debug: false/' $(find ./ -type f -name base.yaml)
 rsync -Pauvht --stats {settings,.env,static,$SOURCE_PATH} $DESTINATION:${DEST_PATH} --exclude target --exclude .git --exclude .github --exclude .gitignore --exclude aj_quiz.log --exclude scan_yam.log --exclude README.md --exclude deploy.sh --exclude target  --exclude tests --exclude .cargo --exclude \*\~ 2>&1 > /dev/null
+
+sed -i 's/debug: false/debug: true/' $(find ./ -type f -name base.yaml)
 # rsync -Paurvht --stats ./ $DESTINATION:${DEST_PATH} --exclude target --exclude .git --exclude .github --exclude .gitignore --exclude aj_quiz.log --exclude scan_yam.log --exclude README.md --exclude deploy.sh --exclude target  --exclude tests --exclude .cargo --exclude \*\~ 
 
 # Check if the last command was successful
@@ -78,21 +83,21 @@ else
     # Create the service file
     cat > $APP_NAME.service <<EOF
 [Unit]
-Description=kid_data
+Description='Track relevant child related information for parents'
 After=network.target
 
 [Service]
 Type=simple
 User=ripley
 WorkingDirectory=/home/ripley/app
-ExecStart=/home/ripley/app/kid_data
+ExecStart=/home/ripley/app/$APP_NAME
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    SERVICE_FILE="$DEST_PATH/kid_data.service"
+    SERVICE_FILE="$DEST_PATH/$(APP_NAME).service"
 
     # Copy the service file to the server
     rsync -Pauvht --stats $APP_NAME.service $DESTINATION:~/ 2>&1 > /dev/null
@@ -152,7 +157,7 @@ EOF
 fi
 
 # Restart the service
-echo -e "\e[33mRestarting the service: ${APP_NAME} @ ${DESTINATION}\e[0m"
+echo -e "\e[33mRestarting the service: ${APP_NAME}\e[0m"
 ssh -t $DESTINATION "sudo systemctl restart $APP_NAME" 
 
 # Check if the last command was successful

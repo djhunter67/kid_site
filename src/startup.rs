@@ -1,6 +1,7 @@
 use std::net;
 
 use actix_cors::Cors;
+use actix_files::Files;
 use actix_session::{storage::CookieSessionStore, SessionMiddleware};
 use actix_web::dev;
 use actix_web::http::header;
@@ -98,6 +99,11 @@ fn run(
             .app_data(mongo_pool.clone())
             .app_data(redis_pool.clone())
             .app_data(setters.clone())
+            .service(
+                Files::new("/static", "./static")
+                    .show_files_listing()
+                    .use_last_modified(true),
+            )
             .service(favicon)
             .service(stylesheet)
             .service(source_map)

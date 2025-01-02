@@ -197,6 +197,10 @@ impl TryFrom<String> for Environment {
 pub fn get() -> Result<Settings, config::ConfigError> {
     info!("Getting the system config settings");
     let base_path = std::env::current_dir().expect("Failed to determine the current directory");
+    warn!(
+        "the contents of the settings file: {:?}",
+        base_path.join("settings")
+    );
     let setting_directory = base_path.join("settings");
 
     let environment: Environment = match env::var("APP_ENVIRONMENT")
