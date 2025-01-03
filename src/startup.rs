@@ -15,9 +15,12 @@ use mongodb::Database;
 use tracing::instrument;
 use tracing::{debug, error, info, warn};
 
+use crate::endpoints::adrian::doctor::doctor_data;
 use crate::endpoints::adrian::landing::adrian;
 use crate::endpoints::corbin::landing::corbin;
-use crate::endpoints::images::{dental_image, doctor_image};
+use crate::endpoints::images::{
+    aj_headshot, cj_headshot, dental_image, doctor_image, physician_headshot,
+};
 use crate::endpoints::index::index;
 use crate::endpoints::login::logout;
 use crate::{
@@ -109,12 +112,18 @@ fn run(
             .service(source_map)
             .service(htmx)
             .service(response_targets)
-            .service(english_image)
-            .service(science_image)
-            .service(math_image)
-            .service(dental_image)
-            .service(doctor_image)
-            .service(social_studies_image)
+            .service(
+                scope("/images")
+                    .service(english_image)
+                    .service(science_image)
+                    .service(math_image)
+                    .service(dental_image)
+                    .service(doctor_image)
+                    .service(social_studies_image)
+                    .service(physician_headshot)
+                    .service(aj_headshot)
+                    .service(cj_headshot),
+            )
             .service(login)
             .service(index)
             .service(login_user)
@@ -122,6 +131,7 @@ fn run(
             .service(register)
             .service(logout)
             .service(scope("/child").service(adrian).service(corbin))
+            .service(doctor_data)
             .service(
                 scope("/v1")
                     .service(create)

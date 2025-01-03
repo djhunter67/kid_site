@@ -5,12 +5,11 @@
 
 {% block individual_page_contents %}
 <section id="doctor">
+  
   <aside id="doctor__head">
-    <div id="doctor__head__doctor">
-      <div class="headshot">
-	<img src="" alt="doctor's headshot"/> 
-      </div>
-      <div class="headshot_info">
+    <div class="head_and_data">
+      <img src="images/physician_headshot" alt="doctor's headshot" height="200px" width="200px"/>
+      <div class="head_and_data__data">
 	<h2>{{ name }}</h2>
 	<p>{{ speciality }}</p>
 	<p>{{ email }}</p>
@@ -18,20 +17,29 @@
 	<p>{{ address }}</p>
       </div>
     </div>
-    <div id="doctor__head__child">
-      <div class="headshot">
-	<img src="" alt="childs headshot"/>
+    
+    <div class="head_and_data">
+      <img src="/images/aj_headshot" alt="childs headshot" height="200px" width="200px"/>
+      <div class="head_and_data__data">
+	<h2>Child Name</h2>
+	<p>Child yrs. old</p>
       </div>
-      <div class="headshot_info">
-	<h2>{{ age }}</h2>
-      </div>
-    </div>    
+    </div>
+    
   </aside>
+  
   <aside id="doctor__body">
     <h2>DETAILS</h2>
     <div id="doctor__body__cards">
-      
+      {% for card in card_data %}
+      <div class="doc_card">
+	<h3>{{ card.date }}</h3>
+      </div>
+      {% endfor %}
     </div>
+  </aside>
+  <aside id="doctor__footer">
+    <h4>FOOTER</h4>
   </aside>
 </section>
 

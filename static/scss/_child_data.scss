@@ -1,0 +1,72 @@
+#doctor {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 2rem;
+
+    &__head {
+	grid-row: 1 / 2;
+	justify-content: space-between;
+	align-items: center;
+	display: flex;
+
+	&__child {
+	    outline: teal solid 10px;
+	}
+    }
+
+    &__body {
+	outline: violet solid 10px;
+	grid-row: 2 / 3;
+
+	&__cards {
+	    display: flex;
+	    flex-wrap: wrap;
+	    gap: 2rem;
+	    max-width: 100%;
+	    align-items: center;
+	    justify-content: center;
+	}
+    }
+
+    &__footer {
+	grid-row: 3 / -1;
+	outline: blue solid 10px;
+    }
+    
+}
+
+.head_and_data {
+    padding: 3px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+
+    &__data {
+	margin: 2px;
+    }
+
+    img {
+	border-radius: 1rem;
+    }
+}
+
+.doc_card {
+    background-color: coral;
+    width: 12rem;
+    height: 12rem;
+    // margin: auto;
+    outline: black 1px solid;
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    h3 {
+	text-align: center;
+	padding: 6px;
+    }
+}

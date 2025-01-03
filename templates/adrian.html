@@ -11,9 +11,10 @@
       id="card_container__english__button"
       hx-get="/school_logs/adrian"
       hx-swap="outerHTML"
+      hx-push-url="true"
       hx-target="#template_pages"
       >
-      <img src="/english_image" alt="English image"/>
+      <img src="/images/english_image" alt="English image" height="200px" width="200px"/>
     </a>
   </div>
   <div id="card_contain__math" class="child_card">
@@ -22,18 +23,20 @@
       id="card_container__math__button"
       hx-get="/dental_logs/adrian"
       hx-swap="outerHTML"
+      hx-push-url="true"
       hx-target="#template_pages">
-      <img src="/dental_image" alt="Dental image" height="200px" width="200px"/>
+      <img src="/images/dental_image" alt="Dental image" height="200px" width="200px"/>
     </a>
   </div>
   <div id="card_container__doctor" class="child_card">
     <h2>DOCTOR</h2>
     <a
       id="card_container__doctor__button"
-      hx-get="/doctor_logs/adrian"
+      hx-get="/doctor_data"
       hx-swap="outerHTML"
+      hx-push-url="true"
       hx-target="#template_pages">
-      <img src="/doctor_image" alt="Doctor image" height="200px" width="200px"/>
+      <img src="/images/doctor_image" alt="Doctor image" height="200px" width="200px"/>
     </a>
   </div>
 </section>

@@ -87,3 +87,50 @@ async fn doctor_image() -> Result<NamedFile, actix_web::Error> {
         }
     }
 }
+
+#[get("/physician_headshot")]
+#[instrument(name = "Physician headshot img", level = "info", target = "kid_data")]
+async fn physician_headshot() -> Result<NamedFile, actix_web::Error> {
+    info!("serving physician headshot");
+    let path: PathBuf = ["static", "imgs", "physician_headshot.jpg"]
+        .iter()
+        .collect();
+
+    match NamedFile::open(path) {
+        Ok(file) => Ok(file),
+        Err(err) => {
+            error!("Error opening file: {err:#?}");
+            Err(actix_web::error::ErrorInternalServerError(err))
+        }
+    }
+}
+
+#[get("/aj_headshot")]
+#[instrument(name = "AJ headshot img", level = "info", target = "kid_data")]
+async fn aj_headshot() -> Result<NamedFile, actix_web::Error> {
+    info!("serving Adrian's headshot");
+    let path: PathBuf = ["static", "imgs", "aj_headshot.jpg"].iter().collect();
+
+    match NamedFile::open(path) {
+        Ok(file) => Ok(file),
+        Err(err) => {
+            error!("Error opening file: {err:#?}");
+            Err(actix_web::error::ErrorInternalServerError(err))
+        }
+    }
+}
+
+#[get("/cj_headshot")]
+#[instrument(name = "CJ headshot img", level = "info", target = "kid_data")]
+async fn cj_headshot() -> Result<NamedFile, actix_web::Error> {
+    info!("serving Corbins's headshot");
+    let path: PathBuf = ["static", "imgs", "cj_headshot.jpg"].iter().collect();
+
+    match NamedFile::open(path) {
+        Ok(file) => Ok(file),
+        Err(err) => {
+            error!("Error opening file: {err:#?}");
+            Err(actix_web::error::ErrorInternalServerError(err))
+        }
+    }
+}

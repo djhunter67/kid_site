@@ -5,7 +5,7 @@ use actix_web::{get, HttpResponse, Responder};
 use askama::Template;
 use tracing::{error, info, instrument};
 
-use super::adrian::school::Grade;
+use super::adrian::{doctor::DoctorCards, school::Grade};
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -66,12 +66,12 @@ pub struct CorbinLanding {
 #[template(path = "doctor.html")]
 pub struct DoctorData<'a> {
     pub title: &'a str,
-    pub age: &'a str,
     pub name: &'a str,
     pub email: &'a str,
     pub phone: &'a str,
     pub address: &'a str,
     pub speciality: &'a str,
+    pub card_data: Vec<DoctorCards>,
 }
 
 #[derive(Template)]

@@ -1,6 +1,7 @@
-use actix_web::{get, web, Error, HttpResponse};
+use actix_web::{get, http::header::Date, web, Error, HttpResponse};
 use askama::Template;
 use mongodb::Database;
+use serde::Serialize;
 use tracing::instrument;
 
 use crate::{endpoints::templates::DoctorData, settings::Settings};
@@ -29,12 +30,47 @@ pub async fn doctor_data(
 
     let grade = DoctorData {
         title: "Doctor Data",
-        age: "Kid age",
         name: &settings.doctor.name,
         email: &settings.doctor.email,
         phone: &settings.doctor.phone,
         address: &settings.doctor.address,
         speciality: &settings.doctor.speciality,
+        card_data: vec![
+            DoctorCards {
+                // Get the current date
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+            DoctorCards {
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+            DoctorCards {
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+            DoctorCards {
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+            DoctorCards {
+                // Get the current date
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+            DoctorCards {
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+            DoctorCards {
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+            DoctorCards {
+                date: Date::now().to_string(),
+                ..Default::default()
+            },
+        ],
     };
 
     let return_template = grade.render().expect("Failed to render template");
@@ -42,4 +78,11 @@ pub async fn doctor_data(
     Ok(HttpResponse::Ok()
         .content_type("text/html")
         .body(return_template))
+}
+
+#[derive(Debug, Default, Serialize)]
+pub struct DoctorCards {
+    pub date: String,
+    pub description: String,
+    pub image: String,
 }
