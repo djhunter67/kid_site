@@ -75,6 +75,14 @@ pub struct DoctorData<'a> {
 }
 
 #[derive(Template)]
+#[template(path = "parts/doctor_visit.part.html")]
+pub struct DoctorVisit<'a> {
+    pub date: &'a str,
+    pub notes: Vec<&'a str>,
+    pub purpose: &'a str,
+}
+
+#[derive(Template)]
 #[template(path = "dentist.html")]
 pub struct Dental<'a> {
     pub title: &'a str,

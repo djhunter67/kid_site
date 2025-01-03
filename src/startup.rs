@@ -15,7 +15,7 @@ use mongodb::Database;
 use tracing::instrument;
 use tracing::{debug, error, info, warn};
 
-use crate::endpoints::adrian::doctor::doctor_data;
+use crate::endpoints::adrian::doctor::{doctor_card, doctor_data};
 use crate::endpoints::adrian::landing::adrian;
 use crate::endpoints::corbin::landing::corbin;
 use crate::endpoints::images::{
@@ -132,6 +132,7 @@ fn run(
             .service(logout)
             .service(scope("/child").service(adrian).service(corbin))
             .service(doctor_data)
+            .service(doctor_card)
             .service(
                 scope("/v1")
                     .service(create)

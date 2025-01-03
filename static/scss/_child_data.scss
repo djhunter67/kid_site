@@ -29,13 +29,7 @@
 	    align-items: center;
 	    justify-content: center;
 	}
-    }
-
-    &__footer {
-	grid-row: 3 / -1;
-	outline: blue solid 10px;
-    }
-    
+    }    
 }
 
 .head_and_data {
@@ -64,9 +58,26 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: pointer;
 
-    h3 {
+    h4 {
 	text-align: center;
 	padding: 6px;
+    }
+
+    a {
+	text-decoration: none;
+	color: black;
+    }
+}
+
+#visit {
+    background-color: teal;
+    display: flex;
+    align-items: center;
+    justify-contents: start;
+
+    ul {
+	list-style-type: disc;
     }
 }

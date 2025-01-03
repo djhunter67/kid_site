@@ -1,0 +1,10 @@
+{# Replaces the for loop of doctor cards #}
+<section id="visit">
+  <h2>DATE: {{ date }}</h2>
+  <h2>PURPOSE: {{ purpose }}</h2>
+  <ul>Notes:
+    {% for note in notes %}
+    <li>note</li>
+    {% endfor %}
+  </ul>
+</section>

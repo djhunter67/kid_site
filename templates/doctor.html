@@ -33,13 +33,17 @@
     <div id="doctor__body__cards">
       {% for card in card_data %}
       <div class="doc_card">
-	<h3>{{ card.date }}</h3>
+	<a
+	  hx-get="/doctor_card/{{ card.db_id }}"
+	  hx-target="#doctor__body__cards"
+	  hx-swap="innerHTML"
+	  hx-push-url="true"
+	   >
+	  <h4>{{ card.date }}</h4>
+	</a>
       </div>
       {% endfor %}
     </div>
-  </aside>
-  <aside id="doctor__footer">
-    <h4>FOOTER</h4>
   </aside>
 </section>
 
