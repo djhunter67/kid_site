@@ -9,7 +9,7 @@ use mongodb::{bson::oid::ObjectId, Database};
 use tracing::{debug, error, info, instrument, warn};
 
 use crate::{
-    endpoints::{health::render_error, register::CreateNewUser},
+    endpoints::{error::render_error, register::CreateNewUser},
     models::mongo::{MongoRepo, User},
 };
 
@@ -17,7 +17,7 @@ use crate::{
 #[instrument(name = "Create user", level = "debug", target = "kid_data", skip(client), fields(id = %new_user.email))]
 pub async fn create(client: Data<Database>, new_user: Json<CreateNewUser>) -> HttpResponse {
     info!("Creating user API endpoint");
-    let db = MongoRepo::new(&client.as_ref().to_owned());
+    let db = MongoRepo::new(&client.as_ref().to_owned(), None);
     let data = new_user.into_inner();
     debug!("Creating user: {:#?}", data);
 
@@ -36,7 +36,7 @@ pub async fn create(client: Data<Database>, new_user: Json<CreateNewUser>) -> Ht
 #[instrument(name = "Get user", level = "info", target = "kid_data", skip(client, path), fields(id = %path.email))]
 pub async fn get_user(client: Data<Database>, path: Path<User>) -> HttpResponse {
     info!("Getting user API endpoint");
-    let db = MongoRepo::new(&client.as_ref().to_owned());
+    let db = MongoRepo::new(&client.as_ref().to_owned(), None);
 
     let user_details = db.get_user(Some(path.id.expect("No ID found")), None).await;
 
@@ -64,7 +64,7 @@ pub async fn update_user(
     new_user: Json<User>,
 ) -> HttpResponse {
     info!("Updating user API endpoint");
-    let db = MongoRepo::new(&client.as_ref().to_owned());
+    let db = MongoRepo::new(&client.as_ref().to_owned(), None);
 
     let user_id = path.into_inner();
 
@@ -121,7 +121,7 @@ pub async fn update_user(
 )]
 pub async fn delete_user(client: Data<Database>, path: Path<String>) -> HttpResponse {
     info!("Deleting user API endpoint");
-    let db = MongoRepo::new(&client.as_ref().to_owned());
+    let db = MongoRepo::new(&client.as_ref().to_owned(), None);
     let user_id = path.into_inner();
 
     if user_id.is_empty() {
@@ -150,7 +150,7 @@ pub async fn delete_user(client: Data<Database>, path: Path<String>) -> HttpResp
 )]
 pub async fn get_users(client: Data<Database>) -> HttpResponse {
     info!("Getting all users API endpoint");
-    let db = MongoRepo::new(&client.as_ref().to_owned());
+    let db = MongoRepo::new(&client.as_ref().to_owned(), None);
     debug!("Getting all users");
     let users = db.get_all_users().await;
 

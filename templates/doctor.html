@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %} {{ title }} {% endblock %}
 {% block head %}
+<script defer src="https://unpkg.com/htmx-ext-response-targets@2.0.0/response-targets.js"></script>
 {% endblock %}
 
 {% block individual_page_contents %}
@@ -9,13 +10,13 @@
   <aside id="doctor__head">
     <div class="head_and_data">
       <img src="images/physician_headshot" alt="doctor's headshot" height="200px" width="200px"/>
-      <div class="head_and_data__data">
-	<h2>{{ name }}</h2>
-	<p>{{ speciality }}</p>
-	<p>{{ email }}</p>
-	<p>{{ phone }}</p>
-	<p>{{ address }}</p>
-      </div>
+      <ul class="head_and_data__data">
+	<li>{{ name }}</li>
+	<li>{{ speciality }}</li>
+	<li>{{ email }}</li>
+	<li>{{ phone }}</li>
+	<li>{{ address }}</li>
+      </ul>
     </div>
     
     <div class="head_and_data">
@@ -36,9 +37,10 @@
 	<a
 	  hx-get="/doctor_card/{{ card.db_id }}"
 	  hx-target="#doctor__body__cards"
+	  hx-target-error="#doctor__head"
 	  hx-swap="innerHTML"
 	  hx-push-url="true"
-	   >
+	  >
 	  <h4>{{ card.date }}</h4>
 	</a>
       </div>

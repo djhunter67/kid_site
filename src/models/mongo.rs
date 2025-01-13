@@ -8,7 +8,10 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 use tracing::{debug, error, info, instrument, warn};
 
-use crate::{auth::hash::pw, endpoints::register::CreateNewUser};
+use crate::{
+    auth::hash::pw,
+    endpoints::{adrian::doctor::Appointment, register::CreateNewUser},
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct User {
@@ -95,8 +98,9 @@ impl MongoRepo {
         target = "kid_data",
         skip(collection)
     )]
-    pub fn new(collection: &Database) -> Self {
-        let collection = collection.collection("users");
+    pub fn new(collection: &Database, collection_name: Option<&str>) -> Self {
+        let collection =
+            collection.collection(collection_name.map_or_else(|| "user", |collection| collection));
 
         Self { collection }
     }
@@ -189,7 +193,7 @@ impl MongoRepo {
         skip(self, email)
     )]
     pub async fn get_active_user(&self, email: &str) -> Result<User, Error> {
-        let filter = doc! { "email": email, "is_active": false };
+        let filter = doc! { "email": email, "is_active": true };
 
         debug!("Filter for search: {:#?}", filter);
 
@@ -516,5 +520,31 @@ impl MongoRepo {
         };
 
         Ok(deleted_doc)
+    }
+
+    /// # Results
+    ///   - Returns an ObjectId of the saved value
+    /// # Errors
+    ///   - Returns an error if the document fails to save in the collection
+    /// # Panics
+    ///   - If the Database connection fails
+    #[instrument(
+        name = "Add doctor appt form",
+        level = "info",
+        target = "kid_data",
+        skip(self)
+    )]
+    pub async fn insert_appointment(&self, appt: Appointment) -> Result<InsertOneResult, Error> {
+        info!("Adding a doctor's appointment");
+
+        let doc = doc! {
+            "date": appt.date,
+            "notes": appt.notes,
+            "purpose": appt.purpose,
+        };
+
+        let return_result = self.collection.insert_one(doc).await;
+
+        Ok(return_result.expect(""))
     }
 }

@@ -19,21 +19,21 @@ impl Display for Types {
     }
 }
 
-impl From<String> for Types {
-    fn from(s: String) -> Self {
-        match s.as_str() {
-            "user_id" => Self::UserIdKey,
-            "email" => Self::UserEmailKey,
-            _ => panic!("Invalid type"),
-        }
-    }
-}
+// impl From<String> for Types {
+//     fn from(s: String) -> Self {
+//         match s.as_str() {
+//             "user_id" => Self::UserIdKey,
+//             "email" => Self::UserEmailKey,
+//             _ => panic!("Invalid type"),
+//         }
+//     }
+// }
 
-impl Into<String> for Types {
-    fn into(self) -> String {
-        match self {
-            Self::UserIdKey => "user_id".to_string(),
-            Self::UserEmailKey => "email".to_string(),
+impl From<Types> for String {
+    fn from(t: Types) -> Self {
+        match t {
+            Types::UserIdKey => "user_id".to_string(),
+            Types::UserEmailKey => "email".to_string(),
         }
     }
 }

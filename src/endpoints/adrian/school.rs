@@ -20,7 +20,7 @@ pub async fn grades_update(
     data: web::Json<Grade>,
     client: web::Data<Database>,
 ) -> Result<HttpResponse, Error> {
-    let conn = MongoRepo::new(&client.as_ref().to_owned());
+    let conn = MongoRepo::new(&client.as_ref().to_owned(), Some("Grades"));
 
     let Ok(grade) = serde_json::from_str::<Grade>(&data.to_string()) else {
         return Ok(HttpResponse::BadRequest().into());

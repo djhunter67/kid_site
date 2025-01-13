@@ -1,5 +1,6 @@
 pub mod adrian;
 pub mod corbin;
+mod error;
 pub mod health;
 pub mod images;
 pub mod index;

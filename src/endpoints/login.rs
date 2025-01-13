@@ -14,7 +14,7 @@ use tracing::{debug, error, info, instrument, warn};
 use crate::{
     auth::hash::verify_pw,
     endpoints::{
-        health::render_error,
+        error::render_error,
         structure::Login,
         templates::{ErrorPage, Index, LoginPage},
     },
@@ -76,7 +76,7 @@ pub async fn login_user(
         })
     };
 
-    let pool = MongoRepo::new(&pool.as_ref().to_owned());
+    let pool = MongoRepo::new(&pool.as_ref().to_owned(), None);
 
     match pool.get_user(None, Some(&user.email)).await {
         Ok(logged_in_user) => match tasker(logged_in_user.clone())
@@ -156,7 +156,7 @@ pub async fn logout(session: Session, pool: Data<Database>) -> HttpResponse {
         Ok(user_id) => {
             info!("User retreived from db.");
             session.purge();
-            let pool = MongoRepo::new(&pool.as_ref().to_owned());
+            let pool = MongoRepo::new(&pool.as_ref().to_owned(), None);
             match pool.toggle_activity(user_id, false).await {
                 Ok(_) => info!("user activity updated"),
                 Err(err) => {

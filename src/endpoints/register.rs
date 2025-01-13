@@ -14,7 +14,7 @@ use tracing::{debug, error, info, instrument, warn};
 use crate::{
     auth,
     endpoints::{
-        health::render_error,
+        error::render_error,
         templates::{ErrorPage, RegisterPage},
     },
     models::mongo::MongoRepo,
@@ -86,7 +86,7 @@ pub async fn register(
 ) -> HttpResponse {
     info!("register endpoint hit");
 
-    let pool = MongoRepo::new(&pool.as_ref().to_owned());
+    let pool = MongoRepo::new(&pool.as_ref().to_owned(), None);
 
     // Check if passwords match
     if new_user.password != new_user.password_2 {
