@@ -47,7 +47,7 @@ hex = "0.4.3"
 lazy_static = "1.5.0"
 lettre = { version = "0.11.9", features = ["builder", "tokio1-native-tls"]} 
 mongodb = "3.0.1"
-openssl = { version = "0.10.66", features = ["vendored"] }
+openssl = { version = "0.10.72", features = ["vendored"] }
 pasetors = "0.7.0"
 rand = "0.8.5"
 serde = { version = "1.0.208", features = ["derive"] }
