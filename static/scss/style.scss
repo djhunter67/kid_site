@@ -1,0 +1,70 @@
+$inner_background: hsl(0, 0%, 100%);
+$card_background: hsl(206, 30%, 40%);
+
+@import 'login';
+@import 'errors';
+@import 'main';
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
+
+body {
+    background-color: teal;
+    height: 100dvh;
+    width: 100dvw;
+    margin-inline: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: auto;
+    gap: 3rem;
+
+    nav {
+	grid-area: nav;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	background-color: hsl(322, 70%, 30%);
+	border-radius: 30px;
+	padding: 1rem 2rem;
+	margin: 1rem;
+	cursor: pointer;
+	position: absolute;
+	top: 0;
+	right: 0;
+    }
+
+    img {
+	max-width: 100%;
+	display: block;
+    }
+
+    #error_block {
+	display: none;
+    }
+
+    #template_pages {
+	grid-area: main;
+	width: 1280px;
+	height: 720px;
+	border-radius: 30px;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	margin: 0 auto;
+	padding: 0 2rem;
+	background-color: $inner_background;
+    }
+}
+
+

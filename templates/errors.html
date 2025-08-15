@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %} {{ title }} -- {{ error }} {% endblock %}
+{% block head %}
+{% endblock %}
+
+{% block individual_page_contents %}
+<div class="error">
+  <section class="error__information">
+    <p> ERROR: {{ message }} </p>
+  </section>
+  <section class="error__information">
+    <p> {{ error }} </p>
+  </section>
+</div>
+{% call super() %} {% endblock %}

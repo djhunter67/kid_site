@@ -1,0 +1,45 @@
+$error_red: hsl(0, 100%, 50%); // red
+
+
+// #error_block {
+//     position: relative;
+//     z-index: 100;
+//     grid-area: header;
+//     width: 200px;
+//     height: 80px;
+//     border-radius: 30px;
+//     display: flex;
+//     flex-direction: row;
+//     justify-content: center;
+//     align-items: center;
+//     margin: 0 auto;
+//     color: black;
+//     background-color: hsl(350, 75%, 45%);
+
+.error {
+    background-color: hsl(350, 75%, 45%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    color: black;
+    border-radius: 2rem;
+    
+    &__information {
+	font-size: 5em;
+	margin: 1em;
+	color: black;
+
+	animation: error 1.5s ease-in-out;
+    }
+
+    @keyframes error {
+	0% {
+	    transform: scale(0.5);
+	}
+	100% {
+	    transform: scale(1);
+	}
+    }
+}
+
